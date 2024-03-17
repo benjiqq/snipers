@@ -1,0 +1,34 @@
+version: '3.8'
+services:
+
+  # Database
+  mongodb:
+    image: mongo
+    volumes:
+      - mongodbdata:/data/db
+    networks:
+      - solananetwork
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: "user"
+      MONGO_INITDB_ROOT_PASSWORD: "password"
+
+  # Pool monitor
+  pool-monitor:
+    build: .
+    volumes:
+      - .:/src
+    env_file:
+      - .env
+    command: sh -c "yarn dev"
+    depends_on:
+      - mongodb
+    networks:
+      - solananetwork
+
+volumes:
+  mongodbdata:
+
+networks:
+  solananetwork:

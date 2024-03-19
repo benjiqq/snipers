@@ -81,13 +81,29 @@ class PoolMonitor {
             try {
                 this.isInitiated = true;
 
-                this.subscribeToLogs();
-                // this.test();
             } catch (error) {
                 console.log(error);
                 Log.error('Failed to initiate logs subscription');
             }
         }
+
+        Log.info('Connecting to DB...');
+        await connectDb();
+        Log.info('DB connection successful.');
+    }
+
+    public async start() {
+
+        try {
+            this.isInitiated = true;
+
+            this.subscribeToLogs();
+            // this.test();
+        } catch (error) {
+            console.log(error);
+            Log.error('Failed to initiate logs subscription');
+        }
+
 
         Log.info('Connecting to DB...');
         await connectDb();
@@ -153,7 +169,7 @@ class PoolMonitor {
                         }
 
                         //Parse this pool
-                        this.parsePoolInformation(poolCreationTx);
+                        this.storePoolInformation(poolCreationTx);
                     } else {
                         Log.error('Pool address could not be retrieved!');
                     }
@@ -201,7 +217,7 @@ class PoolMonitor {
      * @param signature - The signature of the transaction.
      * @returns An object containing the pool account and timestamp, or null if not found.
      */
-    private async getPoolTransaction(signature: string): Promise<PoolCreationTx | null> {
+    public async getPoolTransaction(signature: string): Promise<PoolCreationTx | null> {
         try {
             if (!this.connection) return null;
             const tx = await this.connection.getParsedTransaction(signature, {
@@ -223,7 +239,7 @@ class PoolMonitor {
      * Parse the pool's information and perform initial analysis.
      * @param msg - info containing the pool address, timestamp and signature.
      */
-    private async parsePoolInformation(tx: PoolCreationTx) {
+    public async storePoolInformation(tx: PoolCreationTx) {
 
         // First get pool information
         const poolInfo = await PoolInfoGatherer.poolInfoGatherer(tx);

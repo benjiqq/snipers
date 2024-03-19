@@ -15,7 +15,6 @@ const SOL_DECIMALS = 9;
 
 /**
  * Parse information about a pool.
- * possible optimzation using onProgramAccountChange
  */
 class PoolInfoGatherer {
     private static instance: PoolInfoGatherer | null = null;
@@ -38,6 +37,59 @@ class PoolInfoGatherer {
             this.instance = new PoolInfoGatherer();
         }
         return this.instance;
+    }
+
+    public parsePoolInfo(poolInfo: any, tokenFromPool: any, tx: any, SOL_TOKEN_ACCOUNT: any) {
+        const poolObj: Pool = {
+            pool_account: poolInfo.poolAccount,
+            pool_mint_signature: tx.transaction.signatures[0],
+            block_time: Number(tx.blockTime) * 1000,
+            lp_amount: poolInfo.lpAmount,
+            pair_details: {
+                token_coin: poolInfo.tokenCoin,
+                token_pc: poolInfo.tokenPc,
+                coin_decimals: Number(poolInfo.coinDecimals),
+                pc_decimals: Number(poolInfo.pcDecimals),
+                coin_amount: poolInfo.coinAmount,
+                pc_amount: poolInfo.pcAmount,
+                coin_mint: poolInfo.coinMint,
+                pc_mint: poolInfo.pcMint,
+                lp_mint: poolInfo.lpMint,
+                open_orders: poolInfo.openOrders,
+                market: poolInfo.market,
+                serum_dex: poolInfo.serumDex,
+                target_orders: poolInfo.targetOrders,
+                amm_owner: poolInfo.ammOwner,
+                swap_take_coin_fee: poolInfo.outPut.swapTakeCoinFee,
+                fees: {
+                    min_separate_denominator: poolInfo.fees.minSeparateDenominator,
+                    min_separate_numerator: poolInfo.fees.minSeparateNumerator,
+                    trade_fee_denominator: poolInfo.fees.tradeFeeDenominator,
+                    trade_fee_numerator: poolInfo.fees.tradeFeeNumerator,
+                    pnl_denominator: poolInfo.fees.pnlDenominator,
+                    pnl_numerator: poolInfo.fees.pnlNumerator,
+                    swap_fee_denominator: poolInfo.fees.swapFeeDenominator,
+                    swap_fee_numerator: poolInfo.fees.swapFeeNumerator,
+                },
+                SOL_TOKEN_ACCOUNT: SOL_TOKEN_ACCOUNT ? SOL_TOKEN_ACCOUNT : '',
+            },
+            pool_open_time: poolInfo.outPut.poolOpenTime,
+            token: {
+                name: tokenFromPool.name,
+                symbol: tokenFromPool.symbol,
+                address: tokenFromPool.address,
+                supply: tokenFromPool.supply,
+                description: tokenFromPool.description,
+                creator_site: tokenFromPool.creator_site,
+            },
+            first_swap_at: 0,
+            first_swap_block: 0,
+            pool_creator: '',
+            analysis: null,
+            status: 'waiting_for_analysis',
+            error: ""
+        };
+        return poolObj;
     }
 
     /**
@@ -72,59 +124,11 @@ class PoolInfoGatherer {
 
             if (tokenFromPool) {
                 try {
-                    const poolObj: Pool = {
-                        pool_account: poolInfo.poolAccount,
-                        pool_mint_signature: tx.transaction.signatures[0],
-                        block_time: Number(tx.blockTime) * 1000,
-                        lp_amount: poolInfo.lpAmount,
-                        pair_details: {
-                            token_coin: poolInfo.tokenCoin,
-                            token_pc: poolInfo.tokenPc,
-                            coin_decimals: Number(poolInfo.coinDecimals),
-                            pc_decimals: Number(poolInfo.pcDecimals),
-                            coin_amount: poolInfo.coinAmount,
-                            pc_amount: poolInfo.pcAmount,
-                            coin_mint: poolInfo.coinMint,
-                            pc_mint: poolInfo.pcMint,
-                            lp_mint: poolInfo.lpMint,
-                            open_orders: poolInfo.openOrders,
-                            market: poolInfo.market,
-                            serum_dex: poolInfo.serumDex,
-                            target_orders: poolInfo.targetOrders,
-                            amm_owner: poolInfo.ammOwner,
-                            swap_take_coin_fee: poolInfo.outPut.swapTakeCoinFee,
-                            fees: {
-                                min_separate_denominator: poolInfo.fees.minSeparateDenominator,
-                                min_separate_numerator: poolInfo.fees.minSeparateNumerator,
-                                trade_fee_denominator: poolInfo.fees.tradeFeeDenominator,
-                                trade_fee_numerator: poolInfo.fees.tradeFeeNumerator,
-                                pnl_denominator: poolInfo.fees.pnlDenominator,
-                                pnl_numerator: poolInfo.fees.pnlNumerator,
-                                swap_fee_denominator: poolInfo.fees.swapFeeDenominator,
-                                swap_fee_numerator: poolInfo.fees.swapFeeNumerator,
-                            },
-                            SOL_TOKEN_ACCOUNT: SOL_TOKEN_ACCOUNT ? SOL_TOKEN_ACCOUNT : '',
-                        },
-                        pool_open_time: poolInfo.outPut.poolOpenTime,
-                        token: {
-                            name: tokenFromPool.name,
-                            symbol: tokenFromPool.symbol,
-                            address: tokenFromPool.address,
-                            supply: tokenFromPool.supply,
-                            description: tokenFromPool.description,
-                            creator_site: tokenFromPool.creator_site,
-                        },
-                        first_swap_at: 0,
-                        first_swap_block: 0,
-                        pool_creator: '',
-                        analysis: null,
-                        status: 'waiting_for_analysis',
-                        error: ""
-                    };
                     const tokenAddress = poolInfo.coinMint;
                     const baseTokenAddress = poolInfo.pcMint;
                     const token = await this.getTokenInfo(tokenAddress);
                     const base = await this.getTokenInfo(baseTokenAddress);
+                    let poolObj = this.parsePoolInfo(poolInfo, tokenFromPool, tx, SOL_TOKEN_ACCOUNT);
                     return { poolObj: poolObj, token: token, lpKeys: LpKeys };
                 } catch (error) {
                     Log.error("Failed to add pool to DB");
@@ -179,7 +183,7 @@ class PoolInfoGatherer {
      * @param {number} time - The time at which the pool information is being fetched.
      * @returns {Promise<PoolModel | null>} The decoded pool model or null.
      */
-    private async getPoolInfo(address: string): Promise<PoolModel | null> {
+    public async getPoolInfo(address: string): Promise<PoolModel | null> {
         const acc = await this.connection!.getAccountInfo(new PublicKey(address));
         if (acc) {
             const result = this.coder!.accounts.decode('ammInfo', acc.data);
@@ -263,7 +267,7 @@ class PoolInfoGatherer {
 
     /**
      * Get Liquidity Market data info.
-     * 
+     * Ref: https://gist.github.com/endrsmar/684c336c3729ec4472b2f337c50c3cdb
      */
     private async fetchMarketInfo(marketId: PublicKey) {
         if (!this.connection) return false;
@@ -278,6 +282,7 @@ class PoolInfoGatherer {
 
     /**
     * Get Liquidity Pool information from a parsed transaction.
+    * Ref: https://gist.github.com/endrsmar/684c336c3729ec4472b2f337c50c3cdb
     */
     private parsePoolInfoFromLpTransaction(txData: ParsedTransactionWithMeta) {
         const initInstruction = this.findInstructionByProgramId(txData.transaction.message.instructions, new PublicKey(RAYDIUM_POOL_V4_PROGRAM_ID)) as PartiallyDecodedInstruction | null;

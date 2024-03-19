@@ -17,6 +17,7 @@ httpServer.listen(Number(PORT), '0.0.0.0', undefined, () => {
     Log.log(`Application on port ${PORT}`);
     // Init app
     PoolMonitor.init();
+    PoolMonitor.start();
 
 }).on('error', (err) => {
     Log.error('Unable to start application.');

@@ -2,7 +2,7 @@ import Log from "../../lib/logger.js";
 
 const mongoose = require('mongoose');
 
-import models from './models/index.js';
+//import models from './models/index.js';
 
 const poolSchema = new mongoose.Schema({
     pool_account: String,

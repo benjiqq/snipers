@@ -3,7 +3,7 @@ import PoolInfoGatherer from "./poolparser.js";
 import { PoolCreationTx } from "@types";
 import Log from "../lib/logger.js";
 import { LiquidityPoolKeysV4 } from "@raydium-io/raydium-sdk";
-import { connectDb, PoolModel, savePoolToDb } from './db/db.js';
+import { connectDb, PoolModel, savePoolToDb } from './db/index.js';
 
 /**
  * Separate class to keep track of pool addresses that have already been processed.

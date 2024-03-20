@@ -17,7 +17,7 @@
             "serum_dex": "srmqPvymJeFKQ4zGQed1GFppgkRHL9kaELCbyksJtPX",
             "target_orders": "BJGWkpxcDqNqDRhF5dDKEubd3NKYB33bZjGyp9VDjBEF",
             "amm_owner": "GThUX1Atko4tqhN2NaiTazWSeFWMuiUvfFnyJyUghFMJ",
-            "swap_take_coin_fee": "10164726422779563",
+            "swap_take_coin_fee": "10165568743044218",
             "fees": {
                 "min_separate_denominator": "10000",
                 "min_separate_numerator": "5",
@@ -35,7 +35,7 @@
             "name": "smolecoin",
             "symbol": "smole",
             "address": "BeA7eLzYUX9stL6KbVPu1iQ9HmhspuEVKqnQBp95j8pi",
-            "supply": "4099860263355677409",
+            "supply": "4090509056583047031",
             "description": "smolecoin",
             "creator_site": "https://bafkreihptcnlfhxjuug4tqg3lurknp66kuzp4eabfpvwfkq6j3lc4ckmmm.ipfs.nftstorage.link"
         },
@@ -50,7 +50,7 @@
         "name": "smolecoin",
         "symbol": "smole",
         "address": "BeA7eLzYUX9stL6KbVPu1iQ9HmhspuEVKqnQBp95j8pi",
-        "supply": "4099860263355677409",
+        "supply": "4090509056583047031",
         "description": "smolecoin",
         "creator_name": "null",
         "creator_site": "https://bafkreihptcnlfhxjuug4tqg3lurknp66kuzp4eabfpvwfkq6j3lc4ckmmm.ipfs.nftstorage.link"

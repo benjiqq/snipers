@@ -1,5 +1,5 @@
 import 'dotenv/config';
-import PoolMonitor from './app/index.js';
+import PoolMonitor from './app/monitor.js';
 import express, { Request, Application } from 'express';
 import http from 'http';
 import Log from "./lib/logger.js";

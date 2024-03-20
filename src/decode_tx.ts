@@ -1,6 +1,6 @@
 import 'dotenv/config';
-import PoolMonitor from './app/index.js';
-import PoolInfoGatherer from './app/poolparser.js';
+import Monitor from './app/monitor.js';
+import PoolInfoGatherer from './app/parser_pool.js';
 import Log from "./lib/logger.js";
 import { RaydiumAmmCoder } from './raydium_idl/coder/index.js';
 import { Connection } from '@solana/web3.js';
@@ -22,7 +22,7 @@ function printAllInfo(obj: any, parentKey = '') {
     }
 }
 
-async function savePoolInfoToFile(poolInfo: any, filePath: string): Promise<void> {
+async function saveInfoToFile(poolInfo: any, filePath: string): Promise<void> {
     try {
         // Convert the poolInfo object to a JSON string with indentation for readability
         const data = JSON.stringify(poolInfo, null, 4);
@@ -45,36 +45,19 @@ function withTimeout<T>(promise: Promise<T>, timeoutMs: number): Promise<T> {
 
 
 async function fetchDataTx() {
-    let tx = "5kACo9Fw1CErNaJNKCr8K64G7CyoP4RZzAeMNwqT81V8EGjpKyamCE13QkXqD1Ct1256kv7k31xjgtQFo5StShHF";
+    let txid = "5uUoxGk7RhCvhhHBpHcKDrNDfw883eiZkmG8t63Ls8dEsn4bEV7qSJgiyNr6oUGW1yL1d1Y9CzSYBM1UWGBquV2z";
+
+    const tx = await Monitor.getTransaction(txid);
+    Log.info('tx ' + tx);
+    printAllInfo(tx, 'tx');
+
+    //saveInfoToFile
+    //const open_pools = await axios.get(`${process.env.CORE_API_URL}/pairs/filter/?status=position_open`, { headers: axiosHeaders });
 
 }
 
-async function fetchDataPool() {
-    let address = "59p8WydnSZtVovamaSLfcUJRMaA7xoj93kxbddV8yi7tquqBUzKJQjkt9E";
-    let sig: string = "5ntGBmc7BkTQZ9NHni81MKDckcyDp585ptFw27CAwQtqx2bt5P8LtTUXAEtZdKwK5JxzDntH4RsorttYeRT8mhs5";
-    let coder: RaydiumAmmCoder = new RaydiumAmmCoder(IDL as Idl);;
 
-    await PoolMonitor.init();
-
-    try {
-        const poolCreationTx: any = await withTimeout(PoolMonitor.getPoolTransaction(sig), 10000);
-        const poolInfo = await PoolInfoGatherer.poolInfoGatherer(poolCreationTx);
-        Log.info("poolInfo " + poolInfo);
-        printAllInfo(poolInfo, 'poolInfo');
-
-        const filePath = './poolInfo_' + poolInfo?.poolObj.pool_account + '.json';
-        savePoolInfoToFile(poolInfo, filePath);
-        return;
-
-
-    } catch (error) {
-        console.error('Failed to fetch data:', error);
-        throw error;
-    }
-}
-
-
-fetchDataPool().then(result => {
+fetchDataTx().then(result => {
 
 }).catch(error => {
     // Handle any errors

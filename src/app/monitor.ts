@@ -1,5 +1,6 @@
-import { Connection, PublicKey, clusterApiUrl } from '@solana/web3.js';
-import PoolInfoGatherer from "./poolparser.js";
+import { Connection, ParsedTransactionMeta, ParsedTransactionWithMeta, PublicKey, clusterApiUrl } from '@solana/web3.js';
+import PoolInfoGatherer from "./parser_pool.js";
+import TxParser from "./parser_tx.js";
 import { PoolCreationTx } from "@types";
 import Log from "../lib/logger.js";
 import { LiquidityPoolKeysV4 } from "@raydium-io/raydium-sdk";
@@ -41,7 +42,8 @@ class PoolMonitor {
     private connection: Connection | null = null;
     private socketConnection: Connection | null = null;
     private raydiumPKey: PublicKey = new PublicKey('675kPX9MHTjS2zt1qfr1NYHuzeLXfQM9H24wFSUt1Mp8');
-    private counter: number = 0;
+    private logcounter: number = 0;
+    private logcounter_error: number = 0;
     private poolsFound: number = 0;
     private signatures: string[] = [];
     private poolAddressHistorySet: PoolAddressHistorySet = new PoolAddressHistorySet(20);
@@ -110,6 +112,46 @@ class PoolMonitor {
         Log.info('DB connection successful.');
     }
 
+    private async handlePool(log: any) {
+        const isPoolCreation = this.isPoolCreation(log.logs);
+        if (isPoolCreation) {
+            Log.info('Possible pool creation detected in signature: ' + log.signature);
+
+            // First check if the signature is already in the list of signatures
+            if (!this.signatures.includes(log.signature)) {
+
+                const poolCreationTx = await this.getPoolTransaction(log.signature);
+                if (poolCreationTx) {
+                    this.poolsFound++;
+                    Log.log('Pool address found: ' + poolCreationTx.poolAddress);
+                    const message = {
+                        poolAddress: poolCreationTx.poolAddress,
+                        time: poolCreationTx.tx.blockTime,
+                        signature: log.signature
+                    };
+
+                    // If the pool address is already in the history set, don't start parsing
+                    if (this.poolAddressHistorySet.items.has(JSON.stringify(message))) {
+                        Log.info('Pool address already in history set.');
+                        return;
+                    }
+                    this.poolAddressHistorySet.addToStart(JSON.stringify(message));
+                    this.signatures.push(log.signature);
+                    if (this.signatures.length > 100) {
+                        this.signatures.shift();
+                    }
+
+                    //Parse this pool
+                    this.storePoolInformation(poolCreationTx);
+                } else {
+                    Log.error('Pool address could not be retrieved!');
+                }
+            } else {
+                Log.info('Pool creation already exists in signatures list');
+            }
+        }
+    }
+
     /**
      * Subscribes to logs for the Raydium pool contract and processes pool creation events.
      */
@@ -119,69 +161,118 @@ class PoolMonitor {
         Log.info('start subscribeToLogs');
 
         this.logTimeout = setTimeout(() => {
-            if (this.counter === 0) {
+            if (this.logcounter === 0) {
                 Log.info('No logs received within the expected timeframe.');
                 return;
                 // Take appropriate action here, such as retrying or handling the error
             }
         }, 10000); // seconds
 
+        const reportTime = 1000;
+
         const subscriptionId = this.connection.onLogs(ACCOUNT_TO_WATCH, async (log) => {
             clearTimeout(this.logTimeout);
 
-            if (this.counter === 0) {
+            if (this.logcounter === 0) {
                 Log.info('first log received');
                 // Start a timer to report every second after the first log is received.
                 this.reportTimer = setInterval(() => {
-                    Log.info('Signature count: ' + this.counter);
+                    Log.info('Signature count: ' + this.logcounter);
+                    Log.info('Signature count with errors: ' + this.logcounter_error);
                     Log.info('Pools Created count: ' + this.poolsFound);
-                }, 5000); // second
+                    // let p = this.logcounter_error / this.logcounter;
+                    // Log.info('% errors: ' + p);
+                }, reportTime); // seconds
             }
-            this.counter++;
+            this.logcounter++;
 
-            // Check if the transaction represents a pool creation event
-            const isPoolCreation = this.isPoolCreation(log.logs);
-            if (isPoolCreation) {
-                Log.info('Possible pool creation detected in signature: ' + log.signature);
+            if (log.err == null) {
 
-                // First check if the signature is already in the list of signatures
-                if (!this.signatures.includes(log.signature)) {
+                //handle swap
+                // const isSwap = TxParser.isSwap(log.logs);
+                // if (isSwap) {
+                //     //Log.log('Swap detected', poolData.pool_account);
+                //     Log.log('Swap detected ' + log.signature);
+                //     //need throttling here
+                //     if (this.connection) {
+                //         try {
+                //             const tx = await this.connection.getParsedTransaction(log.signature, {
+                //                 maxSupportedTransactionVersion: 0,
+                //             });
+                //             Log.log('Swap detected ' + tx);
+                //         } catch (error) {
 
-                    const poolCreationTx = await this.getPoolTransaction(log.signature);
-                    if (poolCreationTx) {
-                        this.poolsFound++;
-                        Log.log('Pool address found: ' + poolCreationTx.poolAddress);
-                        const message = {
-                            poolAddress: poolCreationTx.poolAddress,
-                            time: poolCreationTx.tx.blockTime,
-                            signature: log.signature
-                        };
+                //         }
+                //     }
 
-                        // If the pool address is already in the history set, don't start parsing
-                        if (this.poolAddressHistorySet.items.has(JSON.stringify(message))) {
-                            Log.info('Pool address already in history set.');
-                            return;
-                        }
-                        this.poolAddressHistorySet.addToStart(JSON.stringify(message));
-                        this.signatures.push(log.signature);
-                        if (this.signatures.length > 100) {
-                            this.signatures.shift();
-                        }
+                //     //this.analyzeSwap(log.)
+                //     // const tx = await this.connection.getParsedTransaction(log.logs, {
+                //     //     maxSupportedTransactionVersion: 0,
+                //     // });
+                //     //const swap = await TxParser.parseSwap(tx, poolData);
+                // }
+                //Log.info('log without error ' + log);
 
-                        //Parse this pool
-                        this.storePoolInformation(poolCreationTx);
-                    } else {
-                        Log.error('Pool address could not be retrieved!');
-                    }
-                } else {
-                    Log.info('Pool creation already exists in signatures list');
-                }
+                // Check if the transaction represents a pool creation event
+                this.handlePool(log);
+
+            } else {
+                //Log.info('log with error ' + log.signature.toString());
+                this.logcounter_error++;
             }
+
+
 
 
         }, "finalized");
         Log.log('Starting web socket, subscription ID: ' + subscriptionId);
     }
+
+    public async analyzeSwap(signature: string) {
+
+    }
+
+    // private async analyzeSwap(signature: string, poolData: Pool) {
+    //     if (!this.connection) return;
+
+    //     try {
+    //         const tx = await this.connection.getParsedTransaction(signature, {
+    //             maxSupportedTransactionVersion: 0,
+    //         });
+
+    //         if (!tx) {
+    //             Log.error('Could not get transaction details for ' + signature);
+    //             return;
+    //         }
+
+    //         try {
+    //             const swap = await TxParser.parseSwap(tx, poolData);
+    //             if (swap) {
+    //                 // await rabbitMQPublisher.publish('swap-feed', JSON.stringify(swap));
+    //                 // if (!this.addressesWithSwaps.includes(swap.pool_address)) {
+    //                 //     this.addressesWithSwaps.push(swap.pool_address);
+    //                 //     await this.saveSwapToDb(swap);
+    //                 //     Log.log('Swap saved to DB', poolData.pool_account);
+    //                 //     if (this.addressesWithSwaps.length > 1000) {
+    //                 //         this.addressesWithSwaps.shift();
+    //                 //     }
+    //                 // }
+    //             } else {
+    //                 Log.info('Not a Raydium swap');
+    //             }
+    //             return swap;
+    //         } catch (error) {
+    //             Log.error('Could not get parse the swap for ' + signature);
+    //             return;
+    //         }
+    //     } catch (error) {
+    //         console.log(error);
+    //         Log.error('Could not get transaction details for ' + signature);
+    //         return;
+    //     }
+    // }
+
+
 
     /**
      * Checks if a transaction represents a pool creation event based on log messages.
@@ -210,6 +301,14 @@ class PoolMonitor {
         }
         // Check if every indicators were found
         return Array.from(indicatorsPresence.values()).every(found => found);
+    }
+
+    public async getTransaction(signature: string): Promise<ParsedTransactionWithMeta | null> {
+        if (!this.connection) return null;
+        const tx = await this.connection.getParsedTransaction(signature, {
+            maxSupportedTransactionVersion: 0,
+        });
+        return tx;
     }
 
     /**

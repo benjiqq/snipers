@@ -303,3 +303,14 @@ export type Holders = {
         percent: number;
     }[] | [];
 };
+
+
+export type DecodedSwap = {
+    blockTime: number;
+    type: string,
+    sol_amount: string,
+    token_amount: string,
+    account: string,
+    tx_signature: string,
+    pool_address: string;
+};

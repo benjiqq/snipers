@@ -1,0 +1,54 @@
+{
+    id: serial("id").primaryKey().notNull(),
+    createdAt: timestamp("createdAt", { precision: 6, mode: "string" })
+      .defaultNow()
+      .notNull(),
+    updatedAt: timestamp("updatedAt", { precision: 6, mode: "string" })
+      .defaultNow()
+      .notNull(),
+    chainId: integer("chainId").notNull(),
+    blockNumber: integer("blockNumber").notNull(),
+    timestamp: timestamp("timestamp", { precision: 3, mode: "string" })
+      .defaultNow()
+      .notNull(),
+    txHash: text("txHash").notNull(),
+
+    logIndex: integer("logIndex").notNull(), <-- on evem transaction, this 
+is the log index of the event, what abt SOL ?
+
+    factoryContractAddress: text("factoryContractAddress").notNull(), <-- 
+evm pair has factory contract address, what abt SOL ?
+    // pairCountIndex: integer("pairCountIndex").notNull(),
+
+    token0Address: text("token0Address").notNull(),
+    token0Symbol: text("token0Symbol").notNull(),
+    token0Name: text("token0Name").notNull(),
+    token0Decimals: integer("token0Decimals").notNull(),
+    token1Address: text("token1Address").notNull(),
+    token1Symbol: text("token1Symbol").notNull(),
+    token1Name: text("token1Name").notNull(),
+    token1Decimals: integer("token1Decimals").notNull(),
+
+    // dExId: integer("dEXId").references(() => dex.id, {
+    //   onDelete: "set null",
+    //   onUpdate: "cascade",
+    // }),
+
+    latestPriceNative: doublePrecision("latestPriceNative").default(0),
+    latestPriceUsd: doublePrecision("latestPriceUSD").default(0),
+
+    latestLiquidityUsd: doublePrecision("latestLiquidityUsd").default(0),
+
+    token0Id: integer("token0Id").references(() => token.id, {
+      onDelete: "set null",
+      onUpdate: "cascade",
+    }),
+    token1Id: integer("token1Id").references(() => token.id, {
+      onDelete: "set null",
+      onUpdate: "cascade",
+    }),
+
+
+    address: text("address").notNull(),
+    dexVersion: text("dexVersion").default("v2"),
+  },

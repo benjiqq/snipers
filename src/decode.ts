@@ -44,7 +44,12 @@ function withTimeout<T>(promise: Promise<T>, timeoutMs: number): Promise<T> {
 }
 
 
-async function fetchData() {
+async function fetchDataTx() {
+    let tx = "5kACo9Fw1CErNaJNKCr8K64G7CyoP4RZzAeMNwqT81V8EGjpKyamCE13QkXqD1Ct1256kv7k31xjgtQFo5StShHF";
+
+}
+
+async function fetchDataPool() {
     let address = "59p8WydnSZtVovamaSLfcUJRMaA7xoj93kxbddV8yi7tquqBUzKJQjkt9E";
     let sig: string = "5ntGBmc7BkTQZ9NHni81MKDckcyDp585ptFw27CAwQtqx2bt5P8LtTUXAEtZdKwK5JxzDntH4RsorttYeRT8mhs5";
     let coder: RaydiumAmmCoder = new RaydiumAmmCoder(IDL as Idl);;
@@ -52,8 +57,6 @@ async function fetchData() {
     await PoolMonitor.init();
 
     try {
-        const connection = new Connection(`${process.env.RPC_HOST}`, { wsEndpoint: `${process.env.WSS_HOST}` });
-
         const poolCreationTx: any = await withTimeout(PoolMonitor.getPoolTransaction(sig), 10000);
         const poolInfo = await PoolInfoGatherer.poolInfoGatherer(poolCreationTx);
         Log.info("poolInfo " + poolInfo);
@@ -66,15 +69,13 @@ async function fetchData() {
 
     } catch (error) {
         console.error('Failed to fetch data:', error);
-        // Handle the error appropriately
-        // This could be throwing the error again or returning a default value
-        throw error; // or return null; // depending on your error handling strategy
+        throw error;
     }
 }
 
-// Remember to call your async function
-fetchData().then(result => {
-    // Do something with the result
+
+fetchDataPool().then(result => {
+
 }).catch(error => {
     // Handle any errors
 });

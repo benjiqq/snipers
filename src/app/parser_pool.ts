@@ -5,7 +5,9 @@ import { BN } from "bn.js";
 import { Metaplex } from '@metaplex-foundation/js';
 import { PoolModel, TokenModel, PoolDetectionMessage, Pool, PoolCreationTx } from "@types";
 import { Idl } from "@coral-xyz/anchor";
-import { LiquidityPoolKeysV4, MARKET_STATE_LAYOUT_V3, Market, TOKEN_PROGRAM_ID } from "@raydium-io/raydium-sdk";
+const RAYDIUM_AUTHORITY_V4 = new PublicKey("5Q544fKrFoe6tsEbD7S8EmxGTJYAKtTVhAW5Q5pge4j1");
+const RAYDIUM_LIQUIDITY_POOL_V4 = new PublicKey("675kPX9MHTjS2zt1qfr1NYHuzeLXfQM9H24wFSUt1Mp8");
+import { LiquidityPoolKeysV4, MARKET_STATE_LAYOUT_V3, Market, TOKEN_PROGRAM_ID } from '"@raydium-io/raydium-sdk";'
 import Log from "../lib/logger.js";
 
 const RAYDIUM_POOL_V4_PROGRAM_ID = '675kPX9MHTjS2zt1qfr1NYHuzeLXfQM9H24wFSUt1Mp8';

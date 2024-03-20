@@ -1,38 +1,38 @@
-const fs = require('fs');
-const path = require('path');
+import fs from 'fs';
+import path from 'path';
 
-const srcDir = path.join(__dirname, 'src');
-const destDir = path.join(__dirname, 'dist');
+const srcDir = path.join(process.cwd(), 'src');
+const destDir = path.join(process.cwd(), 'dist');
 
-function copyFiles(src, dest) {
-    fs.readdir(src, { withFileTypes: true }, (err, files) => {
-        if (err) {
-            console.error(err);
-            return;
-        }
+async function copyFiles(src, dest) {
+    try {
+        const files = await fs.promises.readdir(src, { withFileTypes: true });
 
-        files.forEach(file => {
+        for (const file of files) {
             const srcFilePath = path.join(src, file.name);
             const destFilePath = path.join(dest, file.name);
 
             if (file.isDirectory()) {
-                if (!fs.existsSync(destFilePath)) {
-                    fs.mkdirSync(destFilePath, { recursive: true });
-                }
-                copyFiles(srcFilePath, destFilePath);
+                await fs.promises.mkdir(destFilePath, { recursive: true }).catch(console.error);
+                await copyFiles(srcFilePath, destFilePath);
             } else {
                 if (path.extname(file.name) === '.json') {
-                    fs.copyFile(srcFilePath, destFilePath, err => {
-                        if (err) console.error(err);
-                    });
+                    await fs.promises.copyFile(srcFilePath, destFilePath).catch(console.error);
                 }
             }
-        });
-    });
+        }
+    } catch (err) {
+        console.error(err);
+    }
 }
 
-if (!fs.existsSync(destDir)) {
-    fs.mkdirSync(destDir, { recursive: true });
+async function main() {
+    try {
+        await fs.promises.mkdir(destDir, { recursive: true });
+        await copyFiles(srcDir, destDir);
+    } catch (err) {
+        console.error(err);
+    }
 }
 
-copyFiles(srcDir, destDir);
+main();

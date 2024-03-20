@@ -7,7 +7,10 @@ import { Connection } from '@solana/web3.js';
 const IDL = require('./raydium_idl/idl.json');
 import { Idl } from "@coral-xyz/anchor";
 import { writeFile } from 'fs/promises';
+import { PublicKey } from '@solana/web3.js';
 
+const RAYDIUM_AUTHORITY_V4 = new PublicKey("5Q544fKrFoe6tsEbD7S8EmxGTJYAKtTVhAW5Q5pge4j1");
+const RAYDIUM_LIQUIDITY_POOL_V4 = new PublicKey("675kPX9MHTjS2zt1qfr1NYHuzeLXfQM9H24wFSUt1Mp8");
 
 Log.log(`decode example`);
 

@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "main": "src/index.ts",
   "private": true,
-  "type": "commonjs",
+  "type": "module",
   "scripts": {
     "dev": "tsc && node copy-json.js && tsc-watch --noClear -p ./tsconfig.json --onSuccess \"sh -c 'tsc-alias && node ./dist/index.js'\"",
     "start": "node ./dist/index.js",

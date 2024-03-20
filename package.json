@@ -9,6 +9,7 @@
     "start": "node ./dist/index.js",
     "build": "tsc && babel src --out-dir dist --extensions \".ts,.tsx\" && node copy-json.js && tsc-alias",
     "decode": "node ./dist/decode_pool.js",
+    "show": "node ./dist/show_pools.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {

@@ -28,6 +28,7 @@ class PoolInfoGatherer {
     private metaPlex: Metaplex | null = null;
 
     private constructor() {
+        console.log("init " + `${process.env.RPC_HOST}`);
         this.connection = new Connection(`${process.env.RPC_HOST}`, { wsEndpoint: `${process.env.WSS_HOST}` });
         this.metaPlex = Metaplex.make(this.connection);
         this.coder = new RaydiumAmmCoder(IDL as Idl);

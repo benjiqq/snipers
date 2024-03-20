@@ -4,7 +4,7 @@ import TxParser from "./parser_tx.js";
 import { PoolCreationTx } from "@types";
 import Log from "../lib/logger.js";
 import { LiquidityPoolKeysV4 } from "@raydium-io/raydium-sdk";
-import { connectDb, PoolModel, savePoolToDb } from './db/index.js';
+import { connectDb, savePoolToDb } from './db/index.js';
 
 /**
  * Separate class to keep track of pool addresses that have already been processed.
@@ -56,6 +56,7 @@ class PoolMonitor {
      * Private constructor to enforce singleton pattern.
      */
     private constructor() {
+        console.log("init " + `${process.env.RPC_HOST}`);
         this.connection = new Connection(`${process.env.RPC_HOST}`, { wsEndpoint: `${process.env.WSS_HOST}` });
         // this.socketConnection = new Connection(clusterApiUrl("mainnet-beta"), "confirmed");
     }
@@ -106,10 +107,6 @@ class PoolMonitor {
             Log.error('Failed to initiate logs subscription');
         }
 
-
-        Log.info('Connecting to DB...');
-        await connectDb();
-        Log.info('DB connection successful.');
     }
 
     private async handlePool(log: any) {
@@ -166,7 +163,7 @@ class PoolMonitor {
                 return;
                 // Take appropriate action here, such as retrying or handling the error
             }
-        }, 10000); // seconds
+        }, 30000); // seconds
 
         const reportTime = 1000;
 

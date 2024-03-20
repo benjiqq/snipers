@@ -1,22 +1,33 @@
-import { promises as fs } from 'fs';
-import { join, dirname } from 'path';
-import { fileURLToPath } from 'url';
-const __dirname = dirname(fileURLToPath(import.meta.url));
+const fs = require('fs').promises;
+const path = require('path');
+//const modelsDirPath = path.join(__dirname, 'app', 'db', 'models');
+const modelsDirPath = path.join(__dirname, '.');
 
-const models: any = {};
+//const __mdirname = path.dirname((require.main && require.main.filename) ? require.main.filename : '.');
+const __mdirname = modelsDirPath;
+
+const models: Models = {};
 let models_loaded = false;
 
+interface Models {
+    [key: string]: any; // Consider using a more specific type instead of `any` if possible
+}
+
+
 async function* asyncGenerator() {
-    for (const model of await fs.readdir(__dirname)) {
+    for (const model of await fs.readdir(__mdirname)) {
+        console.log('Found file:', model);
         if (model === 'index.js') continue;
-        yield await import(join(__dirname, model));
+        yield Promise.resolve(require(path.join(__mdirname, model)));
     }
 }
 
 (async () => {
-    for await (const { default: modelDefiner } of asyncGenerator()) {
-        if (typeof modelDefiner === 'function') {
-            models[modelDefiner.modelName] = modelDefiner;
+    for await (const modelDefiner of asyncGenerator()) {
+        console.log('Processing model:', modelDefiner);
+        if (typeof modelDefiner.default === 'function') {
+            console.log('Defining model:', modelDefiner.default.modelName); // Debug message    
+            models[modelDefiner.default.modelName] = modelDefiner.default;
             asyncGenerator();
         }
     }
@@ -36,5 +47,6 @@ async function getModels() {
     });
 }
 
+//module.exports = { getModels };
 export { getModels };
-export default models;
+module.exports.default = models;

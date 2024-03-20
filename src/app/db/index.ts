@@ -2,14 +2,15 @@ import Log from "../../lib/logger.js";
 
 const mongoose = require('mongoose');
 
+import { getModels } from '../db/models/index.js'
+
 //import models from './models/index.js';
 
-const poolSchema = new mongoose.Schema({
-    pool_account: String,
-    // Add other fields according to the structure of poolData
-});
+//const models: any = await getModels(); // Ensure all models are loaded
 
-const PoolModel = mongoose.model('Pool', poolSchema);
+//const Pair = models['Pair']; // Access the Pair model
+let Pair: any; // Declare Pair here to ensure it's available in the module scope
+
 
 const connectDb = async (): Promise<void> => {
     try {
@@ -35,8 +36,11 @@ const connectDb = async (): Promise<void> => {
     * @param {any} poolData - The pool information.
     */
 const savePoolToDb = async (poolData: any): Promise<void> => {
+    if (!Pair) {
+        throw new Error('Pair model is not loaded yet');
+    }
     try {
-        const pool = new PoolModel(poolData);
+        const pool = new Pair(poolData);
         await pool.save();
         Log.info('Pool data saved to the database successfully');
     } catch (error) {
@@ -44,7 +48,27 @@ const savePoolToDb = async (poolData: any): Promise<void> => {
     }
 }
 
-export { connectDb, PoolModel, savePoolToDb };
+// Define an async function to load models and perform initial setup
+async function init() {
+    const models: any = await getModels(); // Ensure all models are loaded
+    Pair = models['Pair']; // Access the Pair model
+
+    await connectDb(); // Ensure DB is connected before proceeding
+    // Any other initialization steps can go here
+}
+
+// Call the init function and handle any errors
+init().catch(error => {
+    Log.error('Initialization error:', error);
+});
+
+export { connectDb, Pair, savePoolToDb };
 
 
 
+// const poolSchema = new mongoose.Schema({
+//     pool_account: String,
+//     // Add other fields according to the structure of poolData
+// });
+
+// const PoolModel = mongoose.model('Pool', poolSchema);

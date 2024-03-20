@@ -1,8 +1,12 @@
-import fs from 'fs';
-import path from 'path';
+
+
+const fs = require('fs');
+const path = require('path');
 
 const srcDir = path.join(process.cwd(), 'src');
 const destDir = path.join(process.cwd(), 'dist');
+
+
 
 async function copyFiles(src, dest) {
     try {

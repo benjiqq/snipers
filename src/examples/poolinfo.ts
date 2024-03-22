@@ -1,10 +1,10 @@
 import 'dotenv/config';
-import PoolMonitor from './app/monitor.js';
-import PoolInfoGatherer from './app/parser_pool.js';
-import Log from "./lib/logger.js";
-import { RaydiumAmmCoder } from './raydium_idl/coder/index.js';
+import PoolMonitor from '../app/monitor.js';
+import PoolInfoGatherer from '../app/parser_pool.js';
+import Log from "../lib/logger.js";
+import { RaydiumAmmCoder } from '../raydium_idl/coder/index.js';
 import { Connection } from '@solana/web3.js';
-const IDL = require('./raydium_idl/idl.json');
+const IDL = require('../raydium_idl/idl.json');
 import { Idl } from "@coral-xyz/anchor";
 import { writeFile } from 'fs/promises';
 import { PublicKey } from '@solana/web3.js';
@@ -52,7 +52,16 @@ async function fetchDataTx() {
 
 }
 
+async function fetchDataInfo() {
+    let poolAddress = '5EgCcjkuE42YyTZY4QG8qTioUwNh6agTvJuNRyEqcqV1';
+    const poolInfo = await PoolInfoGatherer.getPoolInfo(poolAddress);
+    Log.info("poolInfo " + poolInfo);
+    const filePath = './poolInfo_' + poolAddress + '.json';
+    savePoolInfoToFile(poolInfo, filePath);
+
+}
 async function fetchDataPool() {
+
     let address = "59p8WydnSZtVovamaSLfcUJRMaA7xoj93kxbddV8yi7tquqBUzKJQjkt9E";
     let sig: string = "5ntGBmc7BkTQZ9NHni81MKDckcyDp585ptFw27CAwQtqx2bt5P8LtTUXAEtZdKwK5JxzDntH4RsorttYeRT8mhs5";
     let coder: RaydiumAmmCoder = new RaydiumAmmCoder(IDL as Idl);;
@@ -76,9 +85,10 @@ async function fetchDataPool() {
     }
 }
 
+fetchDataInfo();
 
-fetchDataPool().then(result => {
+// fetchDataPool().then(result => {
 
-}).catch(error => {
-    // Handle any errors
-});
+// }).catch(error => {
+//     // Handle any errors
+// });

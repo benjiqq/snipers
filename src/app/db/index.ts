@@ -4,12 +4,9 @@ const mongoose = require('mongoose');
 
 import { getModels } from '../db/models/index.js'
 
-//import models from './models/index.js';
-
-//const models: any = await getModels(); // Ensure all models are loaded
-
-//const Pair = models['Pair']; // Access the Pair model
-let Pair: any; // Declare Pair here to ensure it's available in the module scope
+// Declare Pair here to ensure it's available in the module scope
+let Pair: any;
+let Swap: any;
 
 
 const connectDb = async (): Promise<void> => {
@@ -47,6 +44,20 @@ const savePoolToDb = async (poolData: any): Promise<void> => {
         Log.error('Error:' + error);
     }
 }
+
+// const saveTxToDb = async (poolData: any): Promise<void> => {
+//     if (!Swap) {
+//         throw new Error('Pair model is not loaded yet');
+//     }
+//     try {
+//         const pool = new Pair(poolData);
+//         await pool.save();
+//         Log.info('Pool data saved to the database successfully');
+//     } catch (error) {
+//         Log.error('Error:' + error);
+//     }
+// }
+
 
 // Define an async function to load models and perform initial setup
 async function init() {

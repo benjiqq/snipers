@@ -54,6 +54,7 @@ class TxParser {
         return false;
     }
 
+    //public async parseSwap(tx: any): Promise<DecodedSwap | false> {
     public async parseSwap(tx: any, pool: Pool): Promise<DecodedSwap | false> {
         //??
         let SOL_TOKEN_ACCOUNT;
@@ -68,9 +69,9 @@ class TxParser {
 
         const instructions = tx.transaction.message.instructions;
         for (let i = 0; i < instructions.length; i++) {
-            // if (this.isRaydiumSwap(instructions[i], new PublicKey(pool.pool_account))) {
-            //     index = i;
-            // }
+            if (this.isRaydiumSwap(instructions[i], new PublicKey(pool.pool_account))) {
+                index = i;
+            }
         }
 
         let transfers_remaining = 0;
@@ -104,7 +105,8 @@ class TxParser {
 
         let transaction: DecodedSwap = {
             blockTime: tx.blockTime,
-            pool_address: pool.pool_account,
+            //pool_address: pool.pool_account,
+            pool_address: 'XXX',
             tx_signature: tx.transaction.signatures[0],
             type: 'buy',
             token_amount: '',

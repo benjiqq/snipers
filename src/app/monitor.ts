@@ -183,40 +183,40 @@ class PoolMonitor {
             }
             this.logcounter++;
 
-            if (log.err == null) {
+            // if (log.err == null) {
 
-                //handle swap
-                // const isSwap = TxParser.isSwap(log.logs);
-                // if (isSwap) {
-                //     //Log.log('Swap detected', poolData.pool_account);
-                //     Log.log('Swap detected ' + log.signature);
-                //     //need throttling here
-                //     if (this.connection) {
-                //         try {
-                //             const tx = await this.connection.getParsedTransaction(log.signature, {
-                //                 maxSupportedTransactionVersion: 0,
-                //             });
-                //             Log.log('Swap detected ' + tx);
-                //         } catch (error) {
+            //     //handle swap
+            //     const isSwap = TxParser.isSwap(log.logs);
+            //     if (isSwap) {
+            //         //Log.log('Swap detected', poolData.pool_account);
+            //         Log.log('Swap detected ' + log.signature);
+            //         //need throttling here
+            //         if (this.connection) {
+            //             try {
+            //                 const tx = await this.connection.getParsedTransaction(log.signature, {
+            //                     maxSupportedTransactionVersion: 0,
+            //                 });
+            //                 Log.log('Swap detected ' + tx);
+            //             } catch (error) {
 
-                //         }
-                //     }
+            //             }
+            //         }
 
-                //     //this.analyzeSwap(log.)
-                //     // const tx = await this.connection.getParsedTransaction(log.logs, {
-                //     //     maxSupportedTransactionVersion: 0,
-                //     // });
-                //     //const swap = await TxParser.parseSwap(tx, poolData);
-                // }
-                //Log.info('log without error ' + log);
+            //         //     //this.analyzeSwap(log.)
+            //         //     // const tx = await this.connection.getParsedTransaction(log.logs, {
+            //         //     //     maxSupportedTransactionVersion: 0,
+            //         //     // });
+            //         //     //const swap = await TxParser.parseSwap(tx, poolData);
+            //         // }
+            //         //Log.info('log without error ' + log);
 
-                // Check if the transaction represents a pool creation event
-                this.handlePool(log);
+            //         // Check if the transaction represents a pool creation event
+            //         this.handlePool(log);
 
-            } else {
-                //Log.info('log with error ' + log.signature.toString());
-                this.logcounter_error++;
-            }
+            //     } else {
+            //         //Log.info('log with error ' + log.signature.toString());
+            //         this.logcounter_error++;
+            //     }
 
 
 

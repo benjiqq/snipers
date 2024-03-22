@@ -8,8 +8,9 @@
     "dev": "tsc && babel src --out-dir dist --extensions \".ts,.tsx\" && node copy-json.js && tsc-watch --noClear -p ./tsconfig.json --onSuccess \"sh -c 'tsc-alias && node ./dist/index.js'\"",
     "start": "node ./dist/index.js",
     "build": "tsc && babel src --out-dir dist --extensions \".ts,.tsx\" && node copy-json.js && tsc-alias",
-    "decode": "node ./dist/decode_pool.js",
-    "show": "node ./dist/show_pools.js",
+    "poolinfo": "node ./dist/examples/poolinfo.js",
+    "show": "node ./dist/examples/show_pools.js",
+    "showtx": "node ./dist/examples/decode_tx.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {

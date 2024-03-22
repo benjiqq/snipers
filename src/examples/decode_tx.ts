@@ -1,13 +1,13 @@
 import 'dotenv/config';
-import Monitor from './app/monitor.js';
-import PoolInfoGatherer from './app/parser_pool.js';
-import Log from "./lib/logger.js";
-import { RaydiumAmmCoder } from './raydium_idl/coder/index.js';
+import Monitor from '../app/monitor.js';
+import PoolInfoGatherer from '../app/parser_pool.js';
+import Log from "../lib/logger.js";
+import { RaydiumAmmCoder } from '../raydium_idl/coder/index.js';
 import { Connection } from '@solana/web3.js';
-const IDL = require('./raydium_idl/idl.json');
+const IDL = require('../raydium_idl/idl.json');
 import { Idl } from "@coral-xyz/anchor";
 import { writeFile } from 'fs/promises';
-
+import TxParser from '../app/parser_tx.js'
 
 Log.log(`decode example`);
 
@@ -22,10 +22,10 @@ function printAllInfo(obj: any, parentKey = '') {
     }
 }
 
-async function saveInfoToFile(poolInfo: any, filePath: string): Promise<void> {
+async function saveInfoToFile(txInfo: any, filePath: string): Promise<void> {
     try {
         // Convert the poolInfo object to a JSON string with indentation for readability
-        const data = JSON.stringify(poolInfo, null, 4);
+        const data = JSON.stringify(txInfo, null, 4);
 
         // Write the JSON string to a file
         await writeFile(filePath, data, 'utf8');
@@ -51,7 +51,11 @@ async function fetchDataTx() {
     Log.info('tx ' + tx);
     printAllInfo(tx, 'tx');
 
+    // let parsed = TxParser.parseSwap(tx);
+    // Log.info('parsed ' + parsed);
+
     //saveInfoToFile
+    saveInfoToFile(tx, 'rawtx_' + txid + '.json');
     //const open_pools = await axios.get(`${process.env.CORE_API_URL}/pairs/filter/?status=position_open`, { headers: axiosHeaders });
 
 }

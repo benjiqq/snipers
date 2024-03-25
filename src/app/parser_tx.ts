@@ -54,6 +54,66 @@ class TxParser {
         return false;
     }
 
+    public async parseSwapNoPool(tx: any): Promise<DecodedSwap | false> {
+
+        //??
+
+        let swaps = [];
+        let index = -1;
+
+        const instructions = tx.transaction.message.instructions;
+
+        let transfers_remaining = 0;
+        let inner_instructions = tx.meta.innerInstructions;
+
+        for (let inner_instruction of inner_instructions) {
+            if (inner_instruction.index == index) transfers_remaining = 2;
+
+            let nested_instructions = inner_instruction.instructions;
+            for (let nested_instruction of nested_instructions) {
+                console.log("nested_instruction " + nested_instruction);
+                if ("parsed" in nested_instruction) {
+                    if (transfers_remaining > 0 && nested_instruction.parsed.type == "transfer") {
+                        transfers_remaining -= 1;
+                        swaps.push(nested_instruction.parsed.info);
+                    }
+                } else {
+                    console.log("no parsed? ");
+                }
+
+            }
+        }
+        if (swaps.length == 0) {
+            console.log("swap length is zero")
+            return false;
+        }
+        let swap1 = swaps[0];
+        let swap2 = swaps[1];
+
+        const sender1 = new PublicKey(swap1.authority);
+        if (sender1 == RAYDIUM_AUTHORITY_V4) {
+            [swap1, swap2] = [swap2, swap1];
+        }
+
+        let transaction: DecodedSwap = {
+            blockTime: tx.blockTime,
+            //pool_address: pool.pool_account,
+            pool_address: 'XXX',
+            tx_signature: tx.transaction.signatures[0],
+            type: 'buy',
+            token_amount: '',
+            sol_amount: '',
+            account: swap1['authority'],
+        };
+
+        //if (swap2['source'] === SOL_TOKEN_ACCOUNT) {
+        transaction.type = 'unknown';
+        transaction.token_amount = swap1['amount'];
+        transaction.sol_amount = swap2['amount'];
+
+        return transaction;
+    }
+
     //public async parseSwap(tx: any): Promise<DecodedSwap | false> {
     public async parseSwap(tx: any, pool: Pool): Promise<DecodedSwap | false> {
         //??
@@ -105,8 +165,7 @@ class TxParser {
 
         let transaction: DecodedSwap = {
             blockTime: tx.blockTime,
-            //pool_address: pool.pool_account,
-            pool_address: 'XXX',
+            pool_address: pool.pool_account,
             tx_signature: tx.transaction.signatures[0],
             type: 'buy',
             token_amount: '',

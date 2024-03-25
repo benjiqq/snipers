@@ -13,7 +13,7 @@ const connectDb = async (): Promise<void> => {
     try {
         mongoose.set('strictQuery', true);
 
-        Log.info('Connected to MongoDB ');
+        Log.info('Connecting to MongoDB ');
 
         await mongoose.connect(`${process.env.DATABASE_URL}`, {
             // useNewUrlParser: true,

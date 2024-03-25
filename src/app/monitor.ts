@@ -56,9 +56,10 @@ class PoolMonitor {
      * Private constructor to enforce singleton pattern.
      */
     private constructor() {
-        console.log("init " + `${process.env.RPC_HOST}`);
+        Log.info("init connection " + `${process.env.RPC_HOST}`);
         this.connection = new Connection(`${process.env.RPC_HOST}`, { wsEndpoint: `${process.env.WSS_HOST}` });
-        // this.socketConnection = new Connection(clusterApiUrl("mainnet-beta"), "confirmed");
+
+
     }
 
     /**
@@ -78,6 +79,20 @@ class PoolMonitor {
     public async init() {
         if (!this.connection) return;
 
+        try {
+            // Optionally, to get more details about the block, you can use the getBlock method
+            //const blockheight = await this.connection.getBlockHeight();
+            const currentSlot = await this.connection.getSlot();
+
+            //Log.info('getBlockHeight:' + blockheight);
+            //Log.info('currentSlot:' + currentSlot);
+            console.log(currentSlot);
+
+        } catch (error) {
+            Log.error('Failed to fetch the blockheight');
+            console.log(error);
+        }
+
         if (!this.isInitiated) {
             Log.info('Initiating Pool Monitor...');
 
@@ -88,6 +103,8 @@ class PoolMonitor {
                 console.log(error);
                 Log.error('Failed to initiate logs subscription');
             }
+        } else {
+            Log.info('already Initiating');
         }
 
         Log.info('Connecting to DB...');

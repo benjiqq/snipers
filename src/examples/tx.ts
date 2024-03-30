@@ -21,10 +21,7 @@ async function fetchDataTx() {
         Log.info('tx ' + tx);
         Log.info('signatures ' + tx?.transaction.signatures);
         Log.info('instructions ' + tx?.transaction.message.instructions);
-        TxParser.parseSwapNoPool(tx).then(txp => {
-            Log.info('parsed ' + txp);
-            //Log.info('parsed ' + txp);
-        });
+
     });
 
     //Swap 21,258.008700523 JONK 0.111856675    

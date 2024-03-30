@@ -62,33 +62,36 @@ async function fetchDataInfo() {
 }
 async function fetchDataPool() {
 
-    let address = "59p8WydnSZtVovamaSLfcUJRMaA7xoj93kxbddV8yi7tquqBUzKJQjkt9E";
-    let sig: string = "5ntGBmc7BkTQZ9NHni81MKDckcyDp585ptFw27CAwQtqx2bt5P8LtTUXAEtZdKwK5JxzDntH4RsorttYeRT8mhs5";
-    let coder: RaydiumAmmCoder = new RaydiumAmmCoder(IDL as Idl);;
+    //let address = "59p8WydnSZtVovamaSLfcUJRMaA7xoj93kxbddV8yi7tquqBUzKJQjkt9E";
+    let address = "9DYGj7g2b5fipk9wGsUhxdv5zpfTsoGzCiS29vH8Cfrs";
+    let tx = await PoolMonitor.getFirstSwap(address);
+    console.log('tx ' + tx);
+    // let sig: string = "5ntGBmc7BkTQZ9NHni81MKDckcyDp585ptFw27CAwQtqx2bt5P8LtTUXAEtZdKwK5JxzDntH4RsorttYeRT8mhs5";
+    // let coder: RaydiumAmmCoder = new RaydiumAmmCoder(IDL as Idl);;
 
-    await PoolMonitor.init();
+    // await PoolMonitor.init();
 
-    try {
-        const poolCreationTx: any = await withTimeout(PoolMonitor.getPoolTransaction(sig), 10000);
-        const poolInfo = await PoolInfoGatherer.poolInfoGatherer(poolCreationTx);
-        Log.info("poolInfo " + poolInfo);
-        printAllInfo(poolInfo, 'poolInfo');
+    // try {
+    //     const poolCreationTx: any = await withTimeout(PoolMonitor.getPoolTransaction(sig), 10000);
+    //     const poolInfo = await PoolInfoGatherer.poolInfoGatherer(poolCreationTx);
+    //     Log.info("poolInfo " + poolInfo);
+    //     printAllInfo(poolInfo, 'poolInfo');
 
-        const filePath = './poolInfo_' + poolInfo?.poolObj.pool_account + '.json';
-        savePoolInfoToFile(poolInfo, filePath);
-        return;
+    //     const filePath = './poolInfo_' + poolInfo?.poolObj.pool_account + '.json';
+    //     savePoolInfoToFile(poolInfo, filePath);
+    //     return;
 
 
-    } catch (error) {
-        console.error('Failed to fetch data:', error);
-        throw error;
-    }
+    // } catch (error) {
+    //     console.error('Failed to fetch data:', error);
+    //     throw error;
+    // }
 }
 
-fetchDataInfo();
+//fetchDataInfo();
 
-// fetchDataPool().then(result => {
+fetchDataPool().then(result => {
 
-// }).catch(error => {
-//     // Handle any errors
-// });
+}).catch(error => {
+    // Handle any errors
+});

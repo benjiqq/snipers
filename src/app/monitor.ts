@@ -5,6 +5,18 @@ import { PoolCreationTx } from "@types";
 import Log from "../lib/logger.js";
 import { LiquidityPoolKeysV4 } from "@raydium-io/raydium-sdk";
 import { connectDb, savePoolToDb } from './db/index.js';
+import {
+    Liquidity,
+    LiquidityPoolKeys,
+    Market,
+    TokenAccount,
+    SPL_ACCOUNT_LAYOUT,
+    publicKey,
+    struct,
+    MAINNET_PROGRAM_ID,
+    LiquidityStateV4,
+} from '@raydium-io/raydium-sdk';
+export const RAYDIUM_LIQUIDITY_PROGRAM_ID_V4 = MAINNET_PROGRAM_ID.AmmV4;
 
 /**
  * Separate class to keep track of pool addresses that have already been processed.
@@ -35,13 +47,11 @@ class PoolAddressHistorySet {
 }
 
 /**
- * Monitors a Solana blockchain pool, gather info about new pools created and perform initial analysis.
+ * Monitors a Solana blockchain pool, gather info about new pools created
  */
 class PoolMonitor {
     private static instance: PoolMonitor | null = null;
     private connection: Connection | null = null;
-    private socketConnection: Connection | null = null;
-    private raydiumPKey: PublicKey = new PublicKey('675kPX9MHTjS2zt1qfr1NYHuzeLXfQM9H24wFSUt1Mp8');
     private logcounter: number = 0;
     private logcounter_error: number = 0;
     private poolsFound: number = 0;
@@ -50,6 +60,10 @@ class PoolMonitor {
     private isInitiated: boolean = false;
     private reportTimer: any;
     private logTimeout: any;
+    private startTime = Math.floor(new Date().getTime() / 1000);
+
+    private signBatchSize: number = 200;
+    private swapSigList: string[] = [];
 
     /**
      * Initializes a new instance of the PoolMonitor class.
@@ -58,8 +72,6 @@ class PoolMonitor {
     private constructor() {
         Log.info("init connection " + `${process.env.RPC_HOST}`);
         this.connection = new Connection(`${process.env.RPC_HOST}`, { wsEndpoint: `${process.env.WSS_HOST}` });
-
-
     }
 
     /**
@@ -85,8 +97,7 @@ class PoolMonitor {
             const currentSlot = await this.connection.getSlot();
 
             //Log.info('getBlockHeight:' + blockheight);
-            //Log.info('currentSlot:' + currentSlot);
-            console.log(currentSlot);
+            Log.info('currentSlot:' + currentSlot);
 
         } catch (error) {
             Log.error('Failed to fetch the blockheight');
@@ -171,7 +182,6 @@ class PoolMonitor {
      */
     private subscribeToLogs() {
         if (!this.connection) return;
-        const ACCOUNT_TO_WATCH = this.raydiumPKey;
         Log.info('start subscribeToLogs');
 
         this.logTimeout = setTimeout(() => {
@@ -184,7 +194,9 @@ class PoolMonitor {
 
         const reportTime = 1000;
 
-        const subscriptionId = this.connection.onLogs(ACCOUNT_TO_WATCH, async (log) => {
+        //subscribe to all logs from raydium
+        const ACCOUNT_TO_WATCH = new PublicKey(RAYDIUM_LIQUIDITY_PROGRAM_ID_V4);
+        const subscriptionId = this.connection.onLogs(ACCOUNT_TO_WATCH, async (rlog) => {
             clearTimeout(this.logTimeout);
 
             if (this.logcounter === 0) {
@@ -196,9 +208,47 @@ class PoolMonitor {
                     Log.info('Pools Created count: ' + this.poolsFound);
                     // let p = this.logcounter_error / this.logcounter;
                     // Log.info('% errors: ' + p);
+
+                    const currentDate = new Date();
+                    const t = currentDate.getTime() / 1000;
+                    const delta = (t - this.startTime);
+
+                    Log.info('Seconds since start: ' + delta.toFixed(0));
+                    Log.info('Total event count: ' + this.logcounter);
+                    Log.info('Events per sec: ' + (this.logcounter / delta).toFixed(0));
+
+                    Log.info('Swaps per sec: ' + (this.swapSigList.length / delta).toFixed(0));
+                    Log.info('Swaps error per sec: ' + (this.logcounter_error / delta).toFixed(0));
+
                 }, reportTime); // seconds
             }
             this.logcounter++;
+
+            // ignore logs from this special type
+            if (rlog.signature != '1111111111111111111111111111111111111111111111111111111111111111') {
+                // first find if tx was successful or not since most are failed
+                let lastlog: string = rlog.logs[rlog.logs.length - 1];
+                if (!(lastlog.includes("failed"))) {
+                    const isSwap = this.isSwap(rlog.logs);
+                    if (isSwap) {
+                        this.swapSigList.push(rlog.signature);
+
+                        // Log.info('--------------------------------------------')
+                        // Log.info(rlog.signature);
+                        // Log.info('#logs ' + rlog.logs.length);
+                        // Log.info('--------------------------------------------')
+
+                        // for (let logEntry of rlog.logs) {
+                        //     Log.info(logEntry);
+                        // }
+                    }
+
+
+                } else {
+                    this.logcounter_error++;
+                }
+            }
+
 
             // if (log.err == null) {
 
@@ -244,6 +294,17 @@ class PoolMonitor {
 
     public async analyzeSwap(signature: string) {
 
+    }
+
+    private isSwap(logMessages: string[]): boolean {
+        if (!this.connection) return false;
+        const swapIndicator = "Program log: Instruction: Transfer";
+        for (const logMessage of logMessages) {
+            if (logMessage.includes(swapIndicator)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     // private async analyzeSwap(signature: string, poolData: Pool) {
@@ -347,6 +408,31 @@ class PoolMonitor {
             return null;
         }
     }
+
+    public getFirstSwap = async (pool_account: String) => {
+        if (!this.connection) return;
+        try {
+            const signatures = await this.connection.getSignaturesForAddress(new PublicKey(pool_account), { limit: 1000 });
+            const succeeded: any = signatures?.filter((tx: any) => !tx.err);
+            succeeded.sort((a: any, b: any) => a.blockTime - b.blockTime);
+            console.log('succeeded.length ' + succeeded.length);
+            for (let i = 0; i < succeeded.length; i++) {
+                const tx = await this.connection!.getParsedTransaction(succeeded[i].signature, {
+                    maxSupportedTransactionVersion: 0,
+                });
+                if (tx) {
+                    return tx;
+                    //const swap = await this.parseSwap(tx, poolData);
+                    // if (swap) {
+                    //     return swap;
+                    // }
+                }
+            }
+            return false;
+        } catch (error) {
+            //Log.error('Could not get first swap for ' + poolData.pool_account);
+        }
+    };
 
     /**
      * Parse the pool's information and perform initial analysis.

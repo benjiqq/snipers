@@ -16,7 +16,7 @@ interface Models {
 
 async function* asyncGenerator() {
     for (const model of await fs.readdir(__mdirname)) {
-        console.log('Found file:', model);
+        //console.log('Found file:', model);
         if (model === 'index.js') continue;
         yield Promise.resolve(require(path.join(__mdirname, model)));
     }
@@ -24,9 +24,9 @@ async function* asyncGenerator() {
 
 (async () => {
     for await (const modelDefiner of asyncGenerator()) {
-        console.log('Processing model:', modelDefiner);
+        //console.log('Processing model:', modelDefiner);
         if (typeof modelDefiner.default === 'function') {
-            console.log('Defining model:', modelDefiner.default.modelName); // Debug message    
+            //console.log('Defining model:', modelDefiner.default.modelName); // Debug message    
             models[modelDefiner.default.modelName] = modelDefiner.default;
             asyncGenerator();
         }

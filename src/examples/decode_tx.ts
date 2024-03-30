@@ -33,7 +33,7 @@ async function saveInfoToFile(txInfo: any, filePath: string): Promise<void> {
         // Write the JSON string to a file
         await writeFile(filePath, data, 'utf8');
 
-        console.log('Pool information has been saved to', filePath);
+        console.log('Info has been saved to', filePath);
     } catch (error) {
         console.error('Failed to save pool information to file:', error);
     }
@@ -57,32 +57,25 @@ async function readJsonFile(filePath: string): Promise<any> {
 }
 
 async function parseTx() {
-    let txid = "rawtx_5uUoxGk7RhCvhhHBpHcKDrNDfw883eiZkmG8t63Ls8dEsn4bEV7qSJgiyNr6oUGW1yL1d1Y9CzSYBM1UWGBquV2z";
-    let file = txid + ".json";
+    //let txid = "5uUoxGk7RhCvhhHBpHcKDrNDfw883eiZkmG8t63Ls8dEsn4bEV7qSJgiyNr6oUGW1yL1d1Y9CzSYBM1UWGBquV2z";
+    let txid = "4LrxoKpmeCSs7rbr5XMHmYVfFhhefHYXZqeVaM9SKA8EtpGP2x1kE1qePqmEfv7FbwYrEJrGb7X1ktsZTZNiZn5Z";
+    let file = 'rawtx_' + txid + ".json";
     let tx = await readJsonFile(file);
     console.log(tx.meta.innerInstructions);
     let swaps = [];
-    let inner_instructions: any = tx?.meta?.innerInstructions;
     //21,258.008700523 JONK for 0.111856675
-    for (let inner_instruction of inner_instructions) {
-        let nested_instructions = inner_instruction.instructions;
-        //console.log(nested_instructions);
-        for (let nested_instruction of nested_instructions) {
-            if ("parsed" in nested_instruction) {
-                if (nested_instruction.parsed.type == "transfer") {
-                    console.log(nested_instruction.parsed);
-                    console.log(nested_instruction.parsed.info.amount);
-                    swaps.push(nested_instruction.parsed.info);
-                }
-            }
-        }
-    }
-    swaps.forEach((swap, index) => {
-        console.log(`swap ${index}: ${swap}`);
-    });
+    let ptx = await TxParser.parseSwap(tx);
+    console.log(ptx);
     process.exit()
+
 }
-async function fetchDataTx() {
+async function storeDataTx() {
+    let txid = "4LrxoKpmeCSs7rbr5XMHmYVfFhhefHYXZqeVaM9SKA8EtpGP2x1kE1qePqmEfv7FbwYrEJrGb7X1ktsZTZNiZn5Z";
+    const tx = await Monitor.getTransaction(txid);
+    saveInfoToFile(tx, 'rawtx_' + txid + '.json');
+}
+
+async function parseStoredTx() {
     let txid = "5uUoxGk7RhCvhhHBpHcKDrNDfw883eiZkmG8t63Ls8dEsn4bEV7qSJgiyNr6oUGW1yL1d1Y9CzSYBM1UWGBquV2z";
     Log.info('get tx ' + txid);
 
@@ -107,6 +100,7 @@ async function fetchDataTx() {
         }
     }
 
+
     for (let swap in swaps) {
         console.log(swap);
     }
@@ -130,3 +124,7 @@ async function fetchDataTx() {
 // });
 
 parseTx();
+
+// storeDataTx().then(result => {
+//     console.log(result);
+// });

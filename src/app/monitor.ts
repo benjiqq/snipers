@@ -249,6 +249,30 @@ class PoolMonitor {
                 }
             }
 
+            if (this.swapSigList.length > this.signBatchSize) {
+                Log.info('get tx ' + this.swapSigList[0]);
+                Log.info('get tx ' + this.swapSigList.length);
+                tryconst slicedSig = this.sliceTxArray(this.signBatchSize, this.swapSigList);
+                let parsedtx = await this.connection?.getParsedTransactions(slicedSig, {
+                    maxSupportedTransactionVersion: 0,
+                })
+                if (parsedtx) {
+                    Log.info("got parsed tx " + parsedtx.length);
+                    const swapTxInfo = []
+                    // TODO
+                    // for (const tx of parsedtx) {
+                    //     const poolsToConsider = await this.getPoolsToConsider();
+                    //     const swapTx = await this.getSwapTxFromTxInfo(tx, poolsToConsider);
+                    //     if (swapTx) {
+                    //         swapTxInfo.push(swapTx);
+                    //     }
+                    // }
+                    // if (swapTxInfo.length > 0) {
+                    //     this.addSwapsToDB(swapTxInfo);
+                    // };
+                }
+            }
+
 
             // if (log.err == null) {
 
@@ -291,6 +315,26 @@ class PoolMonitor {
         }, "finalized");
         Log.log('Starting web socket, subscription ID: ' + subscriptionId);
     }
+
+    /**
+     * Slices an array into chunks of a specified size.
+     * Used for processing transaction signatures in batches.
+     * @private
+     * @method sliceTxArray
+     * @param {number} maxArraySize - Maximum size of each chunk.
+     * @param {string[]} array - Array to be sliced.
+     * @returns {string[]} - The sliced array.
+     */
+    private sliceTxArray(maxArraySize: number, array: string[]): string[] {
+        const chunkedArray: string[][] = [];
+        for (let i = 0; i < array.length; i += maxArraySize) {
+            const chunk = array.slice(i, i + maxArraySize);
+            chunkedArray.push(chunk);
+        }
+        this.swapSigList = chunkedArray[1];
+        return chunkedArray[0];
+    }
+
 
     public async analyzeSwap(signature: string) {
 

@@ -11,6 +11,7 @@
     "poolinfo": "node ./dist/examples/poolinfo.js",
     "show": "node ./dist/examples/show_pools.js",
     "showtx": "node ./dist/examples/decode_tx.js",
+    "poolstream": "node ./dist/examples/pool_stream.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
@@ -38,6 +39,7 @@
     "express": "^4.18.2",
     "express-oauth2-jwt-bearer": "^1.6.0",
     "http": "^0.0.1-security",
+    "long": "^5.2.3",
     "mongoose": "^8.0.0",
     "tsc-alias": "^1.8.8"
   },

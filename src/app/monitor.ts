@@ -252,7 +252,7 @@ class PoolMonitor {
             if (this.swapSigList.length > this.signBatchSize) {
                 Log.info('get tx ' + this.swapSigList[0]);
                 Log.info('get tx ' + this.swapSigList.length);
-                tryconst slicedSig = this.sliceTxArray(this.signBatchSize, this.swapSigList);
+                const slicedSig = this.sliceTxArray(this.signBatchSize, this.swapSigList);
                 let parsedtx = await this.connection?.getParsedTransactions(slicedSig, {
                     maxSupportedTransactionVersion: 0,
                 })

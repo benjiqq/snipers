@@ -12,22 +12,40 @@ import { writeFile } from 'fs/promises';
 import TxParser from '../app/parser_tx.js'
 import { start } from 'repl';
 import { ParsedTransaction } from '@solana/web3.js';
-
+import { decodeRayLog } from './decode_ray'
 
 console.log(process.env.RPC_HOST);
 const connection = new Connection(`${process.env.RPC_HOST}`, { wsEndpoint: `${process.env.WSS_HOST}` });
 console.log('subscribeToLogsPool');
 async function subscribeToLogsPool() {
-    //const subscriptionId = connection.onLogs(new PublicKey('Gk59kudJAps3tdPbSqPz5Udb9w7KGo4NeXrdBtEnhguG'), async (rlog) => {
-    const subscriptionId = connection.onLogs(new PublicKey('2sfWUk554RrtLJA5mHhWFuNEwVVDW9eMEffNf7L8znRm'), async (rlog) => {
+
+    const subscriptionId = connection.onLogs(new PublicKey('879F697iuDJGMevRkRcnW21fcXiAeLJK1ffsw2ATebce'), async (rlog) => {
         //Log.log("log " + rlog.logs)
         let lastlog: string = rlog.logs[rlog.logs.length - 1];
+
         if (!(lastlog.includes("failed"))) {
+            let found_ray = false;
             //Log.log("last log " + lastlog)
             for (let logEntry of rlog.logs) {
+                //Log.info('> ' + logEntry)
                 if (logEntry.includes('ray_log')) {
-                    Log.info(logEntry);
+                    found_ray = true;
+                    //Program log: ray_log: A5XjiBgAAAAAAAAAAAAAAAABAAAAAAAAAJXjiBgAAAAA0IdARbB/oAGt00cSBwAAAMBzq/Q6jgUA
+                    //Log.info(logEntry);
+                    let raylog = logEntry.split('ray_log: ')[1]
+                    //Log.info(raylog);
+                    let swapInfo = decodeRayLog(raylog);
+                    //Log.info(swapInfo);
+                    Log.info('type ' + swapInfo.log_type);
+                    Log.info(swapInfo.direction);
                     Log.info(rlog.signature);
+                }
+            }
+
+            if (!found_ray) {
+                Log.info('????');
+                for (let logEntry of rlog.logs) {
+                    Log.info(logEntry)
                 }
             }
             // Log.log("log " + rlog.logs)

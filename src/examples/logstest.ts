@@ -6,11 +6,10 @@ import { RaydiumAmmCoder } from '../raydium_idl/coder/index.js';
 import { Connection, PublicKey } from '@solana/web3.js';
 const IDL = require('../raydium_idl/idl.json');
 import { Idl } from "@coral-xyz/anchor";
-
-const RAYDIUM_PUBLIC_KEY = "675kPX9MHTjS2zt1qfr1NYHuzeLXfQM9H24wFSUt1Mp8";
+import { RAYDIUM_LIQUIDITY_PROGRAM_ID_V4 } from './liquidity';
 
 const SESSION_HASH = 'QNDEMO' + Math.ceil(Math.random() * 1e9); // Random unique identifier for your session
-const raydium = new PublicKey(RAYDIUM_PUBLIC_KEY);
+const raydium = new PublicKey(RAYDIUM_LIQUIDITY_PROGRAM_ID_V4);
 
 const connection = new Connection(`${process.env.RPC_HOST}`, { wsEndpoint: `${process.env.WSS_HOST}` });
 
@@ -29,6 +28,10 @@ async function main(connection: any, programAddress: any) {
             // Take appropriate action here, such as retrying or handling the error
         }
     }, 30000); // seconds
+
+    var endTimeout = setTimeout(() => {
+
+    }, 60 * 1000);
 
     const reportTime = 5000;
 

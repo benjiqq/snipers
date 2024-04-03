@@ -1,4 +1,5 @@
-// stream logs
+
+// stream from ray fee to get pools
 
 import 'dotenv/config';
 import Log from "../lib/logger.js";
@@ -7,39 +8,23 @@ const IDL = require('../raydium_idl/idl.json');
 import { decodeRayLog } from './decode_ray.js'
 import { MAINNET_PROGRAM_ID } from '@raydium-io/raydium-sdk';
 export const RAYDIUM_LIQUIDITY_PROGRAM_ID_V4 = MAINNET_PROGRAM_ID.AmmV4;
-const io = require('@pm2/io')
 
-//testing
-const realtimeUser = io.metric({
-    name: 'Realtime user',
-})
-
-realtimeUser.set(42)
-
-const eventssec = io.meter({
-    name: 'req/sec',
-    id: 'app/requests/volume'
-})
-
-
-function measureBytes(data: any) {
+function measureBytes(strings: any) {
     const encoder = new TextEncoder();
     let totalBytes = 0;
 
-    if (Array.isArray(data)) {
-        data.forEach((element) => {
-            // Convert non-string elements to strings
-            const stringElement = typeof element === 'string' ? element : JSON.stringify(element);
-            const bytes = encoder.encode(stringElement).length;
-            totalBytes += bytes;
-        });
-    } else {
-        console.error("Input is not an array");
-    }
+    strings.forEach((string: any) => {
+        const bytes = encoder.encode(string).length;
+        totalBytes += bytes;
+        console.log(`"${string}" is ${bytes} bytes`);
+    });
 
     return totalBytes;
 }
 
+export const RAY_FEE = new PublicKey(
+    '7YttLkHDoNj9wyDur5pM1ejNaAvT9X4eqaYcHQqtj2G5'
+);
 
 
 const connection = new Connection(`${process.env.RPC_HOST}`, { wsEndpoint: `${process.env.WSS_HOST}` });
@@ -82,8 +67,6 @@ async function subscribeToLogs() {
         const t = currentDate.getTime() / 1000;
         const delta = (t - runTimestamp);
 
-        let totalMB = totalDownloadedBytes / (1024 * 1024);
-
         Log.info('Seconds since start: ' + delta.toFixed(0));
         Log.info('count_init: ' + count_init);
         Log.info('count_deposit: ' + count_deposit);
@@ -94,9 +77,6 @@ async function subscribeToLogs() {
         Log.info('events_failed ' + events_failed);
         Log.info('events_success ' + events_success);
         Log.info('count_tx ' + count_tx);
-        //Log.info('totalDownloadedBytes ' + totalDownloadedBytes);
-        Log.info('totalMB downloaded ' + totalMB.toFixed(0));
-        Log.info('download MB/sec ' + (totalMB / delta).toFixed(1));
 
     }, reportTime); // seconds
 
@@ -104,13 +84,9 @@ async function subscribeToLogs() {
     //let poolid = '879F697iuDJGMevRkRcnW21fcXiAeLJK1ffsw2ATebce';
     //const subscriptionId = connection.onLogs(new PublicKey(poolid), async (rlog) => {
     let totalDownloadedBytes = 0;
-    let bytes = 0;
-    const subscriptionId = connection.onLogs(new PublicKey(RAYDIUM_LIQUIDITY_PROGRAM_ID_V4), async (rlog) => {
-        eventssec.mark();
-        bytes += measureBytes(rlog.logs);
-
-        totalDownloadedBytes += bytes;
-        //Log.info('totalDownloadedBytes ' + totalDownloadedBytes);
+    const subscriptionId = connection.onLogs(new PublicKey(RAY_FEE), async (rlog) => {
+        totalDownloadedBytes += measureBytes(rlog);
+        Log.info('totalDownloadedBytes ' + totalDownloadedBytes);
         //Log.log("log " + rlog.logs)
 
         let lastlog: string = rlog.logs[rlog.logs.length - 1];

@@ -11,7 +11,7 @@
     "poolinfo": "node ./dist/examples/poolinfo.js",
     "show": "node ./dist/examples/show_pools.js",
     "showtx": "node ./dist/examples/decode_tx.js",
-    "poolstream": "node ./dist/examples/pool_stream.js",
+    "logstream_testing": "node ./dist/examples/logstream_testing.js",
     "logstest": "node ./dist/examples/logstest.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },

@@ -38,6 +38,8 @@ async function subscribeToLogs() {
     let events = 0;
     let events_success = 0;
     let events_failed = 0;
+    //number of tx that succeeds
+    let count_tx = 0;
 
 
     setInterval(() => {
@@ -55,6 +57,7 @@ async function subscribeToLogs() {
         Log.info('Events per sec: ' + (events / delta).toFixed(0));
         Log.info('events_failed ' + events_failed);
         Log.info('events_success ' + events_success);
+        Log.info('count_tx ' + count_tx);
 
     }, reportTime); // seconds
 
@@ -64,10 +67,11 @@ async function subscribeToLogs() {
     const subscriptionId = connection.onLogs(new PublicKey(RAYDIUM_LIQUIDITY_PROGRAM_ID_V4), async (rlog) => {
         //Log.log("log " + rlog.logs)
         let lastlog: string = rlog.logs[rlog.logs.length - 1];
+        //Log.info('lastlog ' + lastlog);
         events++;
 
-        if ((lastlog.includes("events_failed"))) {
-            events_failed++
+        if (lastlog.includes("failed")) {
+            events_failed++;
         }
         else {
             events_success++;
@@ -112,6 +116,7 @@ async function subscribeToLogs() {
                 //     Log.info(logEntry)
                 // }
             } else {
+                count_tx++;
                 //Log.info(rlog.signature);
                 if (infolog.log_type == 0) {
                     Log.info('type ' + infolog.log_type);

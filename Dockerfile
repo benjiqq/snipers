@@ -11,6 +11,8 @@ WORKDIR /src
 
 COPY . /src
 
+RUN yarn global add pm2
+
 RUN yarn install && yarn build
 
 CMD [ "yarn", "start" ]

@@ -2,6 +2,7 @@ import Long from "long";
 
 
 export function decodeRayLog(encodedLog: string): any {
+    //console.log(">> " + encodedLog);
     try {
         //console.log(encodedLog);
 

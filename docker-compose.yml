@@ -21,7 +21,7 @@ services:
       - .:/src
     env_file:
       - .env
-    command: sh -c "pm2 start "yarn start logstest" --name logtest"
+    command: sh -c "pm2 start 'yarn start logstest' --name logtest"
     depends_on:
       - mongodb
     networks:

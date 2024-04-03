@@ -15,6 +15,19 @@ services:
       MONGO_INITDB_ROOT_PASSWORD: "password"
 
   # Pool monitor
+  logstream:
+    build: .
+    volumes:
+      - .:/src
+    env_file:
+      - .env
+    command: sh -c "pm2 start "yarn start logstest" --name logtest"
+    depends_on:
+      - mongodb
+    networks:
+      - solananetwork
+
+  # Pool monitor
   pool-monitor:
     build: .
     volumes:

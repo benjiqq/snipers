@@ -1,0 +1,70 @@
+import 'dotenv/config';
+const express = require('express');
+const WebSocket = require('ws');
+const http = require('http');
+const path = require('path');
+import { rabbitMQSubscriber } from './sub';
+
+const app = express();
+export const server = http.createServer(app);
+const wss = new WebSocket.Server({ server });
+
+
+// app.get('/', (req: any, res: any) => {
+//     // Specify the path to your index.html
+//     const indexPath = path.join(__dirname, 'index.html');
+//     res.sendFile(indexPath);
+// });
+
+async function startServer() {
+
+    //await rabbitMQSubscriber.bindQueueToExchange('myQueue', 'myFanoutExchange');
+
+    try {
+        await rabbitMQSubscriber.consume('pool', (msg) => {
+            if (msg) {
+                console.log("Received message:", msg.content.toString());
+                // Acknowledge the message
+                // rabbitMQSubscriber.channel?.ack(msg);
+            }
+        });
+        console.log('Subscribed to pool');
+    } catch (error) {
+        console.error('Failed to subscribe:', error);
+    }
+
+    // WebSocket connection handler
+    wss.on('connection', (ws: any) => {
+        console.log('Client connected');
+
+        ws.on('message', (message: any) => {
+            console.log(`Received message => ${message}`);
+            // Echo the message back to the client
+            ws.send(`Echo: ${message}`);
+        });
+
+        ws.on('close', () => {
+            console.log('Client disconnected');
+        });
+
+        // Send a message to the client
+        ws.send('Openbot. server started');
+    });
+
+    const PORT = process.env.PORT || 3000;
+    server.listen(PORT, () => {
+        console.log(`Server running on http://localhost:${PORT}`);
+    });
+
+
+}
+
+(async () => {
+    try {
+        await rabbitMQSubscriber.init();
+        await startServer();
+        //console.log(rabbitMQSubscriber.connection)
+    } catch (error) {
+        console.error('An error occurred:', error);
+    }
+})();

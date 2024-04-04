@@ -14,6 +14,24 @@ services:
       MONGO_INITDB_ROOT_USERNAME: "user"
       MONGO_INITDB_ROOT_PASSWORD: "password"
 
+  # RabbitMQ Service
+  rabbitmq:
+    image: "rabbitmq:3-management"
+    healthcheck:
+      test: ["CMD", "rabbitmqctl", "status"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    hostname: "rabbitmq"
+    environment:
+      RABBITMQ_DEFAULT_USER: "user"
+      RABBITMQ_DEFAULT_PASS: "password"
+    ports:
+      - "5672:5672" # AMQP protocol port
+      - "15672:15672" # Management interface port
+    networks:
+      - solananetwork
+
   # Pool monitor
   logstream:
     build: .

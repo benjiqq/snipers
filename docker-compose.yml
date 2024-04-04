@@ -32,31 +32,56 @@ services:
     networks:
       - solananetwork
 
-  # Pool monitor
-  logstream:
+  pooltracker:
     build: .
     volumes:
       - .:/src
     env_file:
       - .env
-    command: sh -c "pm2 start 'yarn start logstest' --name logtest"
+    command: sh -c "yarn pooltracker"
     depends_on:
-      - mongodb
+      - rabbitmq
+    networks:
+      - solananetwork
+
+  server:
+    build: .
+    volumes:
+      - .:/src
+    env_file:
+      - .env
+    command: sh -c "yarn server"
+    depends_on:
+      - pooltracker
+      - rabbitmq
     networks:
       - solananetwork
 
   # Pool monitor
-  pool-monitor:
-    build: .
-    volumes:
-      - .:/src
-    env_file:
-      - .env
-    command: sh -c "yarn dev"
-    depends_on:
-      - mongodb
-    networks:
-      - solananetwork
+  # logstream:
+  #   build: .
+  #   volumes:
+  #     - .:/src
+  #   env_file:
+  #     - .env
+  #   command: sh -c "pm2 start 'yarn start logstest' --name logtest"
+  #   depends_on:
+  #     - mongodb
+  #   networks:
+  #     - solananetwork
+
+  # Pool monitor
+  # pool-monitor:
+  #   build: .
+  #   volumes:
+  #     - .:/src
+  #   env_file:
+  #     - .env
+  #   command: sh -c "yarn dev"
+  #   depends_on:
+  #     - mongodb
+  #   networks:
+  #     - solananetwork
 
 volumes:
   mongodbdata:

@@ -1,5 +1,5 @@
 import 'dotenv/config';
-import Monitor from '../app/monitor.js';
+import Monitor from '../app/oldmonitor.js';
 import PoolInfoGatherer from '../app/parser_pool.js';
 import Log from "../lib/logger.js";
 import { RaydiumAmmCoder } from '../raydium_idl/coder/index.js';

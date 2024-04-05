@@ -2,7 +2,7 @@
 import 'dotenv/config';
 import PoolMonitor from '../app/oldmonitor.js';
 import PoolInfoGatherer from '../app/parser_pool.js';
-import Log from "../lib/logger.js";
+import { logger } from "../lib/logger.js";
 import { RaydiumAmmCoder } from '../raydium_idl/coder/index.js';
 import { Connection } from '@solana/web3.js';
 const IDL = require('../raydium_idl/idl.json');
@@ -10,7 +10,7 @@ import { Idl } from "@coral-xyz/anchor";
 import { writeFile } from 'fs/promises';
 import { getModels } from '../app/db/models/index';
 
-Log.log(`DB example`);
+logger.info(`DB example`);
 
 async function showPools() {
 

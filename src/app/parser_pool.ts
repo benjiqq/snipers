@@ -11,7 +11,7 @@ import { LiquidityPoolKeysV4, MARKET_STATE_LAYOUT_V3, Market, TOKEN_PROGRAM_ID }
 
 // import pkg from '@raydium-io/raydium-sdk';
 // const { MARKET_STATE_LAYOUT_V3, Market, TOKEN_PROGRAM_ID } = pkg;
-import Log from "../lib/logger.js";
+import { logger } from "../lib/logger.js";
 
 const RAYDIUM_POOL_V4_PROGRAM_ID = '675kPX9MHTjS2zt1qfr1NYHuzeLXfQM9H24wFSUt1Mp8';
 // const SERUM_OPENBOOK_PROGRAM_ID = 'srmqPvymJeFKQ4zGQed1GFppgkRHL9kaELCbyksJtPX';
@@ -104,7 +104,7 @@ class PoolInfoGatherer {
     public async poolInfoGatherer(txData: PoolCreationTx): Promise<{ poolObj: Pool, token: TokenModel; lpKeys: LiquidityPoolKeysV4; } | null> {
         const tx = txData.tx;
         const poolInfo = await this.getPoolInfo(txData.poolAddress);
-        Log.info('pool info ' + poolInfo);
+        logger.info('pool info ' + poolInfo);
         let SOL_TOKEN_ACCOUNT;
         let tokenAddress;
 
@@ -124,7 +124,7 @@ class PoolInfoGatherer {
             try {
                 tokenFromPool = await this.getTokenInfo(tokenAddress);
             } catch (error) {
-                Log.error("Failed to get token info from Metaplex");
+                logger.error("Failed to get token info from Metaplex");
                 return null;
             }
 
@@ -137,7 +137,7 @@ class PoolInfoGatherer {
                     let poolObj = this.parsePoolInfo(poolInfo, tokenFromPool, tx, SOL_TOKEN_ACCOUNT);
                     return { poolObj: poolObj, token: token, lpKeys: LpKeys };
                 } catch (error) {
-                    Log.error("Failed to add pool to DB");
+                    logger.error("Failed to add pool to DB");
                     return null;
                 }
             } else return null;
@@ -198,7 +198,7 @@ class PoolInfoGatherer {
             parsed.poolAccount = address;
             return parsed;
         } else {
-            Log.error("Failed to get pool info");
+            logger.error("Failed to get pool info");
             return null;
         }
     }
@@ -279,7 +279,7 @@ class PoolInfoGatherer {
         if (!this.connection) return false;
         const marketAccountInfo = await this.connection.getAccountInfo(marketId);
         if (!marketAccountInfo) {
-            Log.error('Failed to fetch market info for market id ' + marketId.toBase58());
+            logger.error('Failed to fetch market info for market id ' + marketId.toBase58());
             return false;
         }
         return MARKET_STATE_LAYOUT_V3.decode(marketAccountInfo.data);
@@ -293,7 +293,7 @@ class PoolInfoGatherer {
     private parsePoolInfoFromLpTransaction(txData: ParsedTransactionWithMeta) {
         const initInstruction = this.findInstructionByProgramId(txData.transaction.message.instructions, new PublicKey(RAYDIUM_POOL_V4_PROGRAM_ID)) as PartiallyDecodedInstruction | null;
         if (!initInstruction) {
-            Log.error('Failed to find lp init instruction in lp init tx');
+            logger.error('Failed to find lp init instruction in lp init tx');
             return false;
         }
         const baseMint = initInstruction.accounts[8];
@@ -304,29 +304,29 @@ class PoolInfoGatherer {
         const baseAndQuoteSwapped = baseMint.toBase58() === SOL_MINT;
         const lpMintInitInstruction = this.findInitializeMintInInnerInstructionsByMintAddress(txData.meta?.innerInstructions ?? [], lpMint);
         if (!lpMintInitInstruction) {
-            Log.error('Failed to find lp mint init instruction in lp init tx');
+            logger.error('Failed to find lp mint init instruction in lp init tx');
             return false;
         }
         const lpMintInstruction = this.findMintToInInnerInstructionsByMintAddress(txData.meta?.innerInstructions ?? [], lpMint);
         if (!lpMintInstruction) {
-            Log.error('Failed to find lp mint to instruction in lp init tx');
+            logger.error('Failed to find lp mint to instruction in lp init tx');
             return false;
         }
         const baseTransferInstruction = this.findTransferInstructionInInnerInstructionsByDestination(txData.meta?.innerInstructions ?? [], baseVault, TOKEN_PROGRAM_ID);
         if (!baseTransferInstruction) {
-            Log.error('Failed to find base transfer instruction in lp init tx');
+            logger.error('Failed to find base transfer instruction in lp init tx');
             return false;
         }
         const quoteTransferInstruction = this.findTransferInstructionInInnerInstructionsByDestination(txData.meta?.innerInstructions ?? [], quoteVault, TOKEN_PROGRAM_ID);
         if (!quoteTransferInstruction) {
-            Log.error('Failed to find quote transfer instruction in lp init tx');
+            logger.error('Failed to find quote transfer instruction in lp init tx');
             return false;
         }
         const lpDecimals = lpMintInitInstruction.parsed.info.decimals;
         const lpInitializationLogEntryInfo = this.extractLPInitializationLogEntryInfoFromLogEntry(this.findLogEntry('init_pc_amount', txData.meta?.logMessages ?? []) ?? '');
         const basePreBalance = (txData.meta?.preTokenBalances ?? []).find(balance => balance.mint === baseMint.toBase58());
         if (!basePreBalance) {
-            Log.error('Failed to find base tokens preTokenBalance entry to parse the base tokens decimals');
+            logger.error('Failed to find base tokens preTokenBalance entry to parse the base tokens decimals');
             return false;
         }
         const baseDecimals = basePreBalance.uiTokenAmount.decimals;

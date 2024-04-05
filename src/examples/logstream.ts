@@ -1,7 +1,7 @@
 // stream logs
 
 import 'dotenv/config';
-import Log from "../lib/logger.js";
+import { logger } from "../lib/logger.js";
 import { Connection, PublicKey } from '@solana/web3.js';
 const IDL = require('../raydium_idl/idl.json');
 import { decodeRayLog } from './decode_ray.js'
@@ -44,7 +44,7 @@ function measureBytes(data: any) {
 
 const connection = new Connection(`${process.env.RPC_HOST}`, { wsEndpoint: `${process.env.WSS_HOST}` });
 async function subscribeToLogs() {
-    Log.info('subscribeToLogs');
+    logger.info('subscribeToLogs');
 
     // event types, 5 types
     // 4 - this is not a sell
@@ -84,19 +84,19 @@ async function subscribeToLogs() {
 
         let totalMB = totalDownloadedBytes / (1024 * 1024);
 
-        Log.info('Seconds since start: ' + delta.toFixed(0));
-        Log.info('count_init: ' + count_init);
-        Log.info('count_deposit: ' + count_deposit);
-        Log.info('count_withdraw: ' + count_withdraw);
-        Log.info('swapInCount: ' + count_swapin);
-        Log.info('swapOutCount: ' + count_swapout);
-        Log.info('Events per sec: ' + (events / delta).toFixed(0));
-        Log.info('events_failed ' + events_failed);
-        Log.info('events_success ' + events_success);
-        Log.info('count_tx ' + count_tx);
-        //Log.info('totalDownloadedBytes ' + totalDownloadedBytes);
-        Log.info('totalMB downloaded ' + totalMB.toFixed(0));
-        Log.info('download MB/sec ' + (totalMB / delta).toFixed(1));
+        logger.info('Seconds since start: ' + delta.toFixed(0));
+        logger.info('count_init: ' + count_init);
+        logger.info('count_deposit: ' + count_deposit);
+        logger.info('count_withdraw: ' + count_withdraw);
+        logger.info('swapInCount: ' + count_swapin);
+        logger.info('swapOutCount: ' + count_swapout);
+        logger.info('Events per sec: ' + (events / delta).toFixed(0));
+        logger.info('events_failed ' + events_failed);
+        logger.info('events_success ' + events_success);
+        logger.info('count_tx ' + count_tx);
+        //logger.info('totalDownloadedBytes ' + totalDownloadedBytes);
+        logger.info('totalMB downloaded ' + totalMB.toFixed(0));
+        logger.info('download MB/sec ' + (totalMB / delta).toFixed(1));
 
     }, reportTime); // seconds
 
@@ -110,11 +110,11 @@ async function subscribeToLogs() {
         bytes += measureBytes(rlog.logs);
 
         totalDownloadedBytes += bytes;
-        //Log.info('totalDownloadedBytes ' + totalDownloadedBytes);
-        //Log.log("log " + rlog.logs)
+        //logger.info('totalDownloadedBytes ' + totalDownloadedBytes);
+        //logger.info("log " + rlog.logs)
 
         let lastlog: string = rlog.logs[rlog.logs.length - 1];
-        //Log.info('lastlog ' + lastlog);
+        //logger.info('lastlog ' + lastlog);
         events++;
 
         if (lastlog.includes("failed")) {
@@ -123,20 +123,20 @@ async function subscribeToLogs() {
         else {
             events_success++;
             let found_ray = false;
-            //Log.log("last log " + lastlog)
-            //Log.info('>>> ' + rlog.signature);
+            //logger.info("last log " + lastlog)
+            //logger.info('>>> ' + rlog.signature);
             let infolog;
             for (let logEntry of rlog.logs) {
-                //Log.info('> ' + logEntry)
+                //logger.info('> ' + logEntry)
                 if (logEntry.includes('ray_log')) {
                     found_ray = true;
                     //Program log: ray_log: A5XjiBgAAAAAAAAAAAAAAAABAAAAAAAAAJXjiBgAAAAA0IdARbB/oAGt00cSBwAAAMBzq/Q6jgUA
-                    //Log.info(logEntry);
+                    //logger.info(logEntry);
                     let raylog = logEntry.split('ray_log: ')[1]
-                    //Log.info(raylog);
+                    //logger.info(raylog);
                     infolog = decodeRayLog(raylog);
-                    //Log.info(infolog);
-                    //Log.info('type ' + infolog.log_type);
+                    //logger.info(infolog);
+                    //logger.info('type ' + infolog.log_type);
                     if (infolog.log_type == TYPE_INIT) {
                         count_init++;
                     }
@@ -158,33 +158,33 @@ async function subscribeToLogs() {
             }
 
             if (!found_ray) {
-                // Log.info('????');
+                // logger.info('????');
                 // for (let logEntry of rlog.logs) {
-                //     Log.info(logEntry)
+                //     logger.info(logEntry)
                 // }
             } else {
                 count_tx++;
-                //Log.info(rlog.signature);
+                //logger.info(rlog.signature);
                 if (infolog.log_type == 0) {
-                    Log.info('type ' + infolog.log_type);
-                    Log.info(rlog.signature);
+                    logger.info('type ' + infolog.log_type);
+                    logger.info(rlog.signature);
                 }
-                //Log.info('direction ' + infolog.direction);
+                //logger.info('direction ' + infolog.direction);
 
                 // if ((infolog.log_type != 4) && (infolog.log_type != 3)) {
-                //     Log.info('...');
-                //     Log.info(rlog.signature);
-                //     Log.info(infolog.log_type);
-                //     Log.info(infolog);
-                //     Log.info(infolog.direction);
-                //     Log.info('' + swapInCount);
-                //     Log.info('' + swapOutCount);
+                //     logger.info('...');
+                //     logger.info(rlog.signature);
+                //     logger.info(infolog.log_type);
+                //     logger.info(infolog);
+                //     logger.info(infolog.direction);
+                //     logger.info('' + swapInCount);
+                //     logger.info('' + swapOutCount);
 
                 // }
             }
-            //Log.info('-------------------------------- ');
-            // Log.log("log " + rlog.logs)
-            // Log.log("log " + rlog.signature)
+            //logger.info('-------------------------------- ');
+            // logger.info("log " + rlog.logs)
+            // logger.info("log " + rlog.signature)
         }
 
     });

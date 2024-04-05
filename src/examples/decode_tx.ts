@@ -1,7 +1,7 @@
 import 'dotenv/config';
 import Monitor from '../app/oldmonitor.js';
 import PoolInfoGatherer from '../app/parser_pool.js';
-import Log from "../lib/logger.js";
+import { logger } from "../lib/logger.js";
 import { RaydiumAmmCoder } from '../raydium_idl/coder/index.js';
 import { Connection } from '@solana/web3.js';
 const IDL = require('../raydium_idl/idl.json');
@@ -12,7 +12,7 @@ import { readFile } from 'fs';
 import { promises as fs } from 'fs';
 
 
-Log.log(`decode example`);
+logger.info(`decode example`);
 
 function printAllInfo(obj: any, parentKey = '') {
     if (obj && typeof obj === 'object' && !Array.isArray(obj)) {
@@ -77,7 +77,7 @@ async function storeDataTx() {
 
 async function parseStoredTx() {
     let txid = "5uUoxGk7RhCvhhHBpHcKDrNDfw883eiZkmG8t63Ls8dEsn4bEV7qSJgiyNr6oUGW1yL1d1Y9CzSYBM1UWGBquV2z";
-    Log.info('get tx ' + txid);
+    logger.info('get tx ' + txid);
 
     const tx = await Monitor.getTransaction(txid);
     console.log("innerInstructions " + tx?.meta?.innerInstructions?.length);
@@ -104,11 +104,11 @@ async function parseStoredTx() {
     for (let swap in swaps) {
         console.log(swap);
     }
-    // Log.info('tx ' + tx);
+    // logger.info('tx ' + tx);
     // //printAllInfo(tx, 'tx');
 
     // let parsed = TxParser.parseSwapNoPool(tx);
-    // Log.info('parsed ' + parsed);
+    // logger.info('parsed ' + parsed);
 
     //saveInfoToFile
     //saveInfoToFile(tx, 'rawtx_' + txid + '.json');

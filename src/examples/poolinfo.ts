@@ -1,7 +1,7 @@
 import 'dotenv/config';
 import PoolMonitor from '../app/oldmonitor.js';
 import PoolInfoGatherer from '../app/parser_pool.js';
-import Log from "../lib/logger.js";
+import { logger } from "../lib/logger.js";
 import { RaydiumAmmCoder } from '../raydium_idl/coder/index.js';
 import { Connection } from '@solana/web3.js';
 const IDL = require('../raydium_idl/idl.json');
@@ -12,7 +12,7 @@ import { PublicKey } from '@solana/web3.js';
 const RAYDIUM_AUTHORITY_V4 = new PublicKey("5Q544fKrFoe6tsEbD7S8EmxGTJYAKtTVhAW5Q5pge4j1");
 const RAYDIUM_LIQUIDITY_POOL_V4 = new PublicKey("675kPX9MHTjS2zt1qfr1NYHuzeLXfQM9H24wFSUt1Mp8");
 
-Log.log(`decode example`);
+logger.info(`decode example`);
 
 function printAllInfo(obj: any, parentKey = '') {
     if (obj && typeof obj === 'object' && !Array.isArray(obj)) {
@@ -55,7 +55,7 @@ async function fetchDataTx() {
 async function fetchDataInfo() {
     let poolAddress = '5EgCcjkuE42YyTZY4QG8qTioUwNh6agTvJuNRyEqcqV1';
     const poolInfo = await PoolInfoGatherer.getPoolInfo(poolAddress);
-    Log.info("poolInfo " + poolInfo);
+    logger.info("poolInfo " + poolInfo);
     const filePath = './poolInfo_' + poolAddress + '.json';
     savePoolInfoToFile(poolInfo, filePath);
 
@@ -74,7 +74,7 @@ async function fetchDataPool() {
     // try {
     //     const poolCreationTx: any = await withTimeout(PoolMonitor.getPoolTransaction(sig), 10000);
     //     const poolInfo = await PoolInfoGatherer.poolInfoGatherer(poolCreationTx);
-    //     Log.info("poolInfo " + poolInfo);
+    //     logger.info("poolInfo " + poolInfo);
     //     printAllInfo(poolInfo, 'poolInfo');
 
     //     const filePath = './poolInfo_' + poolInfo?.poolObj.pool_account + '.json';

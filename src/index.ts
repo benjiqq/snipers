@@ -2,7 +2,9 @@ import 'dotenv/config';
 import PoolMonitor from './app/oldmonitor.js';
 import express, { Request, Application } from 'express';
 import http from 'http';
-import Log from "./lib/logger.js";
+import { logger } from "./lib/logger";
+
+logger.info('start');
 
 // const app = express();
 // app.use(express.json());
@@ -14,13 +16,13 @@ import Log from "./lib/logger.js";
 
 // const httpServer = http.createServer(app);
 // httpServer.listen(Number(PORT), '0.0.0.0', undefined, () => {
-//     Log.log(`Application on port ${PORT}`);
+//     logger.info(`Application on port ${PORT}`);
 //     // Init app
 //     PoolMonitor.init();
 //     PoolMonitor.start();
 
 // }).on('error', (err) => {
-//     Log.error('Unable to start application.');
+//     logger.error('Unable to start application.');
 //     console.error(err);
 //     process.exit(1);
 // });;

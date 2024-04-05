@@ -2,7 +2,8 @@
 // stream from ray fee to get pools
 
 import 'dotenv/config';
-import Log from '../lib/logger.js';
+
+import { logger } from "../lib/logger";
 import { Connection, PublicKey } from '@solana/web3.js';
 const IDL = require('../raydium_idl/idl.json');
 import { MAINNET_PROGRAM_ID } from '@raydium-io/raydium-sdk';
@@ -51,23 +52,23 @@ function parseBnValues(obj: any): any {
 }
 
 async function getPoolInfo(address: string): Promise<PoolModel | null> {
-    Log.info('getPoolInfo ' + address);
+    logger.info('getPoolInfo ' + address);
     try {
         const acc = await connection!.getAccountInfo(new PublicKey(address));
         if (acc) {
-            //Log.error('acc ' + acc);
-            //Log.error('acc data: ' + acc.data);
+            //logger.error('acc ' + acc);
+            //logger.error('acc data: ' + acc.data);
             const result = coder!.accounts.decode('ammInfo', acc.data);
             if (result.lpAmount.toNumber() === 0) return null;
             const parsed = parseBnValues(result);
             parsed.poolAccount = address;
             return parsed;
         } else {
-            Log.error('Failed to get pool info. no acc');
+            logger.error('Failed to get pool info. no acc');
             return null;
         }
     } catch (error) {
-        Log.error('error getPoolInfo ' + error);
+        logger.error('error getPoolInfo ' + error);
         return null;
     }
 }
@@ -80,30 +81,30 @@ async function getPoolTransaction(signature: string): Promise<PoolCreationTx | n
         });
         const accounts = tx?.transaction?.message?.accountKeys;
         if (accounts) {
-            // Log.info('pool create tx accounts > ');
-            // Log.info(accounts[0].pubkey.toBase58());
-            // Log.info(accounts[1].pubkey.toBase58());
-            // Log.info(accounts[2].pubkey.toBase58());
+            // logger.info('pool create tx accounts > ');
+            // logger.info(accounts[0].pubkey.toBase58());
+            // logger.info(accounts[1].pubkey.toBase58());
+            // logger.info(accounts[2].pubkey.toBase58());
             return { poolAddress: accounts[2].pubkey.toBase58(), tx: tx };
         } else {
             return null;
         }
     } catch (error) {
-        Log.error('Failed to get pool transaction');
+        logger.error('Failed to get pool transaction');
         return null;
     }
 }
 
 async function subscribeToLogs() {
-    Log.info('track pools');
+    logger.info('track pools');
 
     try {
         await rabbitMQPublisher.init();
 
-        Log.info('RabbitMQ connection established');
+        logger.info('RabbitMQ connection established');
     } catch (error) {
         console.log(error);
-        Log.error('Could not initialize RabbitMQ');
+        logger.error('Could not initialize RabbitMQ');
     }
 
     const reportTime = 10000;
@@ -117,25 +118,25 @@ async function subscribeToLogs() {
         const t = currentDate.getTime() / 1000;
         const delta = (t - runTimestamp);
 
-        Log.info('Seconds since start: ' + delta.toFixed(0));
-        Log.info('count_open ' + count_open);
+        logger.info('Seconds since start: ' + delta.toFixed(0));
+        logger.info('count_open ' + count_open);
 
     }, reportTime); // seconds
 
     const subscriptionId = connection.onLogs(new PublicKey(RAY_FEE), async (rlog) => {
 
         //let lastlog: string = rlog.logs[rlog.logs.length - 1];
-        Log.info('sig found ' + rlog.signature);
+        logger.info('sig found ' + rlog.signature);
         count_open++;
 
         //getTokenInfo
-        Log.info('get info');
+        logger.info('get info');
         let tx = await getPoolTransaction(rlog.signature);
 
         if (tx != null) {
-            Log.info('tx ' + tx);
+            logger.info('tx ' + tx);
             let bt = tx.tx.blockTime;
-            Log.info('tx blocktime: ' + bt);
+            logger.info('tx blocktime: ' + bt);
             if (bt != null) {
                 const date = new Date(bt * 1000);
                 const utcDateTimeString = date.toUTCString();
@@ -144,10 +145,10 @@ async function subscribeToLogs() {
                 const currentDate = new Date();
                 const t = currentDate.getTime() / 1000;
                 const delta_seconds = (t - bt);
-                Log.info('delta_seconds ' + delta_seconds);
+                logger.info('delta_seconds ' + delta_seconds);
             }
 
-            Log.info('tx poolAddress ' + tx.poolAddress);
+            logger.info('tx poolAddress ' + tx.poolAddress);
 
             //const key = updatedAccountInfo.accountId.toString();
             //const poolState = LIQUIDITY_STATE_LAYOUT_V4.decode(updatedAccountInfo.accountInfo.data);
@@ -156,9 +157,9 @@ async function subscribeToLogs() {
             // const poolInfo = await this.getPoolInfo(txData.poolAddress);
 
             const poolInfo = await getPoolInfo(tx.poolAddress);
-            Log.info('pool info ' + poolInfo);
+            logger.info('pool info ' + poolInfo);
         } else {
-            Log.info('tx is null');
+            logger.info('tx is null');
         }
 
         await rabbitMQPublisher.publish('pool', JSON.stringify({
@@ -169,7 +170,7 @@ async function subscribeToLogs() {
 
     });
 
-    Log.info('subscribed to new pools ' + subscriptionId);
+    logger.info('subscribed to new pools ' + subscriptionId);
 
 }
 

@@ -1,7 +1,7 @@
 import { Connection, ParsedInstruction, ParsedTransactionWithMeta, PartiallyDecodedInstruction, PublicKey } from '@solana/web3.js';
 // import { rabbitMQPublisher } from "../lib/pubsub/publisher.js";
 // import { rabbitMQSubscriber } from "../lib/pubsub/subscriber.js";
-import Log from '../lib/logger.js';
+import { logger } from '../lib/logger.js';
 import { ConsumeMessage } from "amqplib";
 import * as Utils from "@utils";
 import { Pool, DecodedSwap } from "@types";

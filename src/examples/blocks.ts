@@ -1,7 +1,7 @@
 import 'dotenv/config';
 import Monitor from '../app/oldmonitor.js';
 import PoolInfoGatherer from '../app/parser_pool.js';
-import Log from "../lib/logger.js";
+import { logger } from "../lib/logger.js";
 import { RaydiumAmmCoder } from '../raydium_idl/coder/index.js';
 import { Connection } from '@solana/web3.js';
 const IDL = require('../raydium_idl/idl.json');
@@ -110,7 +110,7 @@ async function fetchTransactions() {
 //     await processBlock(slotInfo.slot);
 // });
 
-//Log.log(`fetchTransactions`);
+//logger.info(`fetchTransactions`);
 
 
 //fetchTransactions();

@@ -15,4 +15,6 @@ RUN yarn global add pm2
 
 RUN yarn install && yarn build
 
-CMD [ "yarn", "start" ]
+CMD [ "yarn", "run", "pooltracker"]
+
+#pm2 start yarn --name "pooltracker" -- run pooltracker

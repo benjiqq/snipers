@@ -1,5 +1,4 @@
-import Log from "../../lib/logger.js";
-
+import { logger } from "../../lib/logger";
 const mongoose = require('mongoose');
 
 import { getModels } from '../db/models/index.js'
@@ -13,17 +12,17 @@ const connectDb = async (): Promise<void> => {
     try {
         mongoose.set('strictQuery', true);
 
-        Log.info('Connecting to MongoDB ');
+        logger.info('Connecting to MongoDB ');
 
         await mongoose.connect(`${process.env.DATABASE_URL}`, {
             // useNewUrlParser: true,
             // useCreateIndex: true,
             // useUnifiedTopology: true,
         });
-        Log.info('Connected to the database successfully ');
-        //Log.info('DB ' + process.env.DATABASE_URL);
+        logger.info('Connected to the database successfully ');
+        //logger.info('DB ' + process.env.DATABASE_URL);
     } catch (error) {
-        Log.error('Failed to connect to the database:' + error);
+        logger.error('Failed to connect to the database:' + error);
         throw error; // Ensure to throw the error to be caught by the caller
     }
 }
@@ -39,9 +38,9 @@ const savePoolToDb = async (poolData: any): Promise<void> => {
     try {
         const pool = new Pair(poolData);
         await pool.save();
-        Log.info('Pool data saved to the database successfully');
+        logger.info('Pool data saved to the database successfully');
     } catch (error) {
-        Log.error('Error:' + error);
+        logger.error('Error:' + error);
     }
 }
 
@@ -52,9 +51,9 @@ const savePoolToDb = async (poolData: any): Promise<void> => {
 //     try {
 //         const pool = new Pair(poolData);
 //         await pool.save();
-//         Log.info('Pool data saved to the database successfully');
+//         logger.info('Pool data saved to the database successfully');
 //     } catch (error) {
-//         Log.error('Error:' + error);
+//         logger.error('Error:' + error);
 //     }
 // }
 
@@ -70,7 +69,7 @@ async function init() {
 
 // Call the init function and handle any errors
 init().catch(error => {
-    Log.error('Initialization error:', error);
+    logger.error('Initialization error:', error);
 });
 
 export { connectDb, Pair, savePoolToDb };

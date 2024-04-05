@@ -2,7 +2,7 @@ import { Connection, ParsedTransactionMeta, ParsedTransactionWithMeta, PublicKey
 import PoolInfoGatherer from "./parser_pool.js";
 import TxParser from "./parser_tx.js";
 import { PoolCreationTx } from "@types";
-import Log from "../lib/logger.js";
+import { logger } from "../lib/logger.js";
 import { LiquidityPoolKeysV4 } from "@raydium-io/raydium-sdk";
 import { connectDb, savePoolToDb } from './db/index.js';
 import {
@@ -70,7 +70,7 @@ class PoolMonitor {
      * Private constructor to enforce singleton pattern.
      */
     private constructor() {
-        Log.info("init connection " + `${process.env.RPC_HOST}`);
+        logger.info("init connection " + `${process.env.RPC_HOST}`);
         this.connection = new Connection(`${process.env.RPC_HOST}`, { wsEndpoint: `${process.env.WSS_HOST}` });
     }
 
@@ -96,31 +96,31 @@ class PoolMonitor {
             //const blockheight = await this.connection.getBlockHeight();
             const currentSlot = await this.connection.getSlot();
 
-            //Log.info('getBlockHeight:' + blockheight);
-            Log.info('currentSlot:' + currentSlot);
+            //logger.info('getBlockHeight:' + blockheight);
+            logger.info('currentSlot:' + currentSlot);
 
         } catch (error) {
-            Log.error('Failed to fetch the blockheight');
+            logger.error('Failed to fetch the blockheight');
             console.log(error);
         }
 
         if (!this.isInitiated) {
-            Log.info('Initiating Pool Monitor...');
+            logger.info('Initiating Pool Monitor...');
 
             try {
                 this.isInitiated = true;
 
             } catch (error) {
                 console.log(error);
-                Log.error('Failed to initiate logs subscription');
+                logger.error('Failed to initiate logs subscription');
             }
         } else {
-            Log.info('already Initiating');
+            logger.info('already Initiating');
         }
 
-        Log.info('Connecting to DB...');
+        logger.info('Connecting to DB...');
         await connectDb();
-        Log.info('DB connection successful.');
+        logger.info('DB connection successful.');
     }
 
     public async start() {
@@ -132,7 +132,7 @@ class PoolMonitor {
             // this.test();
         } catch (error) {
             console.log(error);
-            Log.error('Failed to initiate logs subscription');
+            logger.error('Failed to initiate logs subscription');
         }
 
     }
@@ -140,7 +140,7 @@ class PoolMonitor {
     private async handlePool(log: any) {
         const isPoolCreation = this.isPoolCreation(log.logs);
         if (isPoolCreation) {
-            Log.info('Possible pool creation detected in signature: ' + log.signature);
+            logger.info('Possible pool creation detected in signature: ' + log.signature);
 
             // First check if the signature is already in the list of signatures
             if (!this.signatures.includes(log.signature)) {
@@ -148,7 +148,7 @@ class PoolMonitor {
                 const poolCreationTx = await this.getPoolTransaction(log.signature);
                 if (poolCreationTx) {
                     this.poolsFound++;
-                    Log.log('Pool address found: ' + poolCreationTx.poolAddress);
+                    logger.info('Pool address found: ' + poolCreationTx.poolAddress);
                     const message = {
                         poolAddress: poolCreationTx.poolAddress,
                         time: poolCreationTx.tx.blockTime,
@@ -157,7 +157,7 @@ class PoolMonitor {
 
                     // If the pool address is already in the history set, don't start parsing
                     if (this.poolAddressHistorySet.items.has(JSON.stringify(message))) {
-                        Log.info('Pool address already in history set.');
+                        logger.info('Pool address already in history set.');
                         return;
                     }
                     this.poolAddressHistorySet.addToStart(JSON.stringify(message));
@@ -169,10 +169,10 @@ class PoolMonitor {
                     //Parse this pool
                     this.storePoolInformation(poolCreationTx);
                 } else {
-                    Log.error('Pool address could not be retrieved!');
+                    logger.error('Pool address could not be retrieved!');
                 }
             } else {
-                Log.info('Pool creation already exists in signatures list');
+                logger.info('Pool creation already exists in signatures list');
             }
         }
     }
@@ -182,11 +182,11 @@ class PoolMonitor {
      */
     private subscribeToLogs() {
         if (!this.connection) return;
-        Log.info('start subscribeToLogs');
+        logger.info('start subscribeToLogs');
 
         this.logTimeout = setTimeout(() => {
             if (this.logcounter === 0) {
-                Log.info('No logs received within the expected timeframe.');
+                logger.info('No logs received within the expected timeframe.');
                 return;
                 // Take appropriate action here, such as retrying or handling the error
             }
@@ -200,25 +200,25 @@ class PoolMonitor {
             clearTimeout(this.logTimeout);
 
             if (this.logcounter === 0) {
-                Log.info('first log received');
+                logger.info('first log received');
                 // Start a timer to report every second after the first log is received.
                 this.reportTimer = setInterval(() => {
-                    Log.info('Signature count: ' + this.logcounter);
-                    Log.info('Signature count with errors: ' + this.logcounter_error);
-                    Log.info('Pools Created count: ' + this.poolsFound);
+                    logger.info('Signature count: ' + this.logcounter);
+                    logger.info('Signature count with errors: ' + this.logcounter_error);
+                    logger.info('Pools Created count: ' + this.poolsFound);
                     // let p = this.logcounter_error / this.logcounter;
-                    // Log.info('% errors: ' + p);
+                    // logger.info('% errors: ' + p);
 
                     const currentDate = new Date();
                     const t = currentDate.getTime() / 1000;
                     const delta = (t - this.startTime);
 
-                    Log.info('Seconds since start: ' + delta.toFixed(0));
-                    Log.info('Total event count: ' + this.logcounter);
-                    Log.info('Events per sec: ' + (this.logcounter / delta).toFixed(0));
+                    logger.info('Seconds since start: ' + delta.toFixed(0));
+                    logger.info('Total event count: ' + this.logcounter);
+                    logger.info('Events per sec: ' + (this.logcounter / delta).toFixed(0));
 
-                    Log.info('Swaps per sec: ' + (this.swapSigList.length / delta).toFixed(0));
-                    Log.info('Swaps error per sec: ' + (this.logcounter_error / delta).toFixed(0));
+                    logger.info('Swaps per sec: ' + (this.swapSigList.length / delta).toFixed(0));
+                    logger.info('Swaps error per sec: ' + (this.logcounter_error / delta).toFixed(0));
 
                 }, reportTime); // seconds
             }
@@ -233,13 +233,13 @@ class PoolMonitor {
                     if (isSwap) {
                         this.swapSigList.push(rlog.signature);
 
-                        // Log.info('--------------------------------------------')
-                        // Log.info(rlog.signature);
-                        // Log.info('#logs ' + rlog.logs.length);
-                        // Log.info('--------------------------------------------')
+                        // logger.info('--------------------------------------------')
+                        // logger.info(rlog.signature);
+                        // logger.info('#logs ' + rlog.logs.length);
+                        // logger.info('--------------------------------------------')
 
                         // for (let logEntry of rlog.logs) {
-                        //     Log.info(logEntry);
+                        //     logger.info(logEntry);
                         // }
                     }
 
@@ -250,14 +250,14 @@ class PoolMonitor {
             }
 
             if (this.swapSigList.length > this.signBatchSize) {
-                Log.info('get tx ' + this.swapSigList[0]);
-                Log.info('get tx ' + this.swapSigList.length);
+                logger.info('get tx ' + this.swapSigList[0]);
+                logger.info('get tx ' + this.swapSigList.length);
                 const slicedSig = this.sliceTxArray(this.signBatchSize, this.swapSigList);
                 let parsedtx = await this.connection?.getParsedTransactions(slicedSig, {
                     maxSupportedTransactionVersion: 0,
                 })
                 if (parsedtx) {
-                    Log.info("got parsed tx " + parsedtx.length);
+                    logger.info("got parsed tx " + parsedtx.length);
                     const swapTxInfo = []
                     // TODO
                     // for (const tx of parsedtx) {
@@ -279,15 +279,15 @@ class PoolMonitor {
             //     //handle swap
             //     const isSwap = TxParser.isSwap(log.logs);
             //     if (isSwap) {
-            //         //Log.log('Swap detected', poolData.pool_account);
-            //         Log.log('Swap detected ' + log.signature);
+            //         //logger.info('Swap detected', poolData.pool_account);
+            //         logger.info('Swap detected ' + log.signature);
             //         //need throttling here
             //         if (this.connection) {
             //             try {
             //                 const tx = await this.connection.getParsedTransaction(log.signature, {
             //                     maxSupportedTransactionVersion: 0,
             //                 });
-            //                 Log.log('Swap detected ' + tx);
+            //                 logger.info('Swap detected ' + tx);
             //             } catch (error) {
 
             //             }
@@ -299,13 +299,13 @@ class PoolMonitor {
             //         //     // });
             //         //     //const swap = await TxParser.parseSwap(tx, poolData);
             //         // }
-            //         //Log.info('log without error ' + log);
+            //         //logger.info('log without error ' + log);
 
             //         // Check if the transaction represents a pool creation event
             //         this.handlePool(log);
 
             //     } else {
-            //         //Log.info('log with error ' + log.signature.toString());
+            //         //logger.info('log with error ' + log.signature.toString());
             //         this.logcounter_error++;
             //     }
 
@@ -313,7 +313,7 @@ class PoolMonitor {
 
 
         }, "finalized");
-        Log.log('Starting web socket, subscription ID: ' + subscriptionId);
+        logger.info('Starting web socket, subscription ID: ' + subscriptionId);
     }
 
     /**
@@ -360,7 +360,7 @@ class PoolMonitor {
     //         });
 
     //         if (!tx) {
-    //             Log.error('Could not get transaction details for ' + signature);
+    //             logger.error('Could not get transaction details for ' + signature);
     //             return;
     //         }
 
@@ -371,22 +371,22 @@ class PoolMonitor {
     //                 // if (!this.addressesWithSwaps.includes(swap.pool_address)) {
     //                 //     this.addressesWithSwaps.push(swap.pool_address);
     //                 //     await this.saveSwapToDb(swap);
-    //                 //     Log.log('Swap saved to DB', poolData.pool_account);
+    //                 //     logger.info('Swap saved to DB', poolData.pool_account);
     //                 //     if (this.addressesWithSwaps.length > 1000) {
     //                 //         this.addressesWithSwaps.shift();
     //                 //     }
     //                 // }
     //             } else {
-    //                 Log.info('Not a Raydium swap');
+    //                 logger.info('Not a Raydium swap');
     //             }
     //             return swap;
     //         } catch (error) {
-    //             Log.error('Could not get parse the swap for ' + signature);
+    //             logger.error('Could not get parse the swap for ' + signature);
     //             return;
     //         }
     //     } catch (error) {
     //         console.log(error);
-    //         Log.error('Could not get transaction details for ' + signature);
+    //         logger.error('Could not get transaction details for ' + signature);
     //         return;
     //     }
     // }
@@ -448,7 +448,7 @@ class PoolMonitor {
                 return null;
             }
         } catch (error) {
-            Log.error('Failed to get pool transaction');
+            logger.error('Failed to get pool transaction');
             return null;
         }
     }
@@ -474,7 +474,7 @@ class PoolMonitor {
             }
             return false;
         } catch (error) {
-            //Log.error('Could not get first swap for ' + poolData.pool_account);
+            //logger.error('Could not get first swap for ' + poolData.pool_account);
         }
     };
 
@@ -488,13 +488,13 @@ class PoolMonitor {
         const poolInfo = await PoolInfoGatherer.poolInfoGatherer(tx);
 
         if (!poolInfo) {
-            Log.error('Pool info could not be parsed!');
+            logger.error('Pool info could not be parsed!');
             return;
         } else {
-            Log.info('PoolInfo. Token ' + poolInfo.poolObj.token.address)
+            logger.info('PoolInfo. Token ' + poolInfo.poolObj.token.address)
         }
 
-        Log.log('Pool info parsed successfully');
+        logger.info('Pool info parsed successfully');
 
         let poolData = { ...poolInfo.poolObj };
         //let poolAccount = poolData.pool_account;

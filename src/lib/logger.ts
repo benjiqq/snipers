@@ -1,66 +1,82 @@
-import * as Utils from "@utils";
+import * as winston from 'winston';
+import * as fs from 'fs';
+import * as path from 'path';
+var express = require("express");
+var app = express();
+var http = require("http");
 
-const reset = "\x1b[0m";
-const bright = "\x1b[1m";
-const dim = "\x1b[2m";
-const underscore = "\x1b[4m";
-const blink = "\x1b[5m";
-const reverse = "\x1b[7m";
-const hidden = "\x1b[8m";
-
-const fgBlack = "\x1b[30m";
-const fgRed = "\x1b[31m";
-const fgGreen = "\x1b[32m";
-const fgYellow = "\x1b[33m";
-const fgBlue = "\x1b[34m";
-const fgMagenta = "\x1b[35m";
-const fgCyan = "\x1b[36m";
-const fgWhite = "\x1b[37m";
-const fgGray = "\x1b[90m";
-
-const bgBlack = "\x1b[40m";
-const bgRed = "\x1b[41m";
-const bgGreen = "\x1b[42m";
-const bgYellow = "\x1b[43m";
-const bgBlue = "\x1b[44m";
-const bgMagenta = "\x1b[45m";
-const bgCyan = "\x1b[46m";
-const bgWhite = "\x1b[47m";
-
-class Log {
-    private static instance: Log;
-    private constructor() { }
-
-    public static getInstance(): Log {
-        if (!Log.instance) {
-            Log.instance = new Log();
-        }
-        return Log.instance;
-    }
-
-    public debug(str: string, account?: string): void {
-        console.log(this.time(account) + fgYellow + str + reset);
-    }
-    public log(str: string, account?: string): void {
-        console.log(this.time(account) + fgCyan + str + reset);
-    }
-    public success(str: string, account?: string): void {
-        console.log(this.time(account) + fgGreen + str + reset);
-    }
-    public error(str: string | undefined, account?: string): void {
-        if (!str) console.log(this.time(account) + fgRed + 'Undefined error' + reset);
-        console.log(this.time(account) + fgRed + str + reset);
-    }
-    public info(str: string, account?: string): void {
-        console.log(this.time(account) + fgGray + str + reset);
-    }
-
-    private time(account: string | undefined): string {
-        if (account) {
-            return fgGray + Utils.utcdate(Date.now()) + ' (' + account + ')' + reset + ':  ';
-        }
-        return fgGray + Utils.utcdate(Date.now()) + reset + ':  ';
-    }
+// Define custom TypeScript types for log metadata
+interface LogMetadata {
+    [key: string]: any;
 }
 
-export default Log.getInstance();
+// Authorization callback for WebSocket connections
+var authCallback = function (req: any, callback: any) {
+    // Implement your authentication logic here
+    // For demonstration purposes, we'll allow all connections
+    callback(true); // First argument is a boolean indicating success
+};
+
+function extractStackInfo(stack: string | undefined): string {
+    if (stack) {
+        // Split the stack trace string into lines, and find the first line after the one containing this function's name
+        const stackLines = stack.split('\n');
+        const relevantLine = stackLines.find(line => line.includes('__filename'));
+        if (relevantLine) {
+            // Extract the file path and line number using a regular expression
+            const match = /at\s+(.*):(\d+):(\d+)/.exec(relevantLine);
+            if (match) {
+                return ` (file: ${match[1]}, line: ${match[2]})`;
+            }
+        }
+    }
+    return '';
+}
+
+const customWinstonFormat = winston.format.printf(({ level, message, timestamp, stack, ...metadata }) => {
+    let msg = `${timestamp} [${level}]: ${message}`;
+    // Append stack info if it's an error
+    if (stack) {
+        msg += ` ${extractStackInfo(stack)}`;
+    }
+    if (Object.keys(metadata).length !== 0) {
+        msg += ` ${JSON.stringify(metadata)}`;
+    }
+    return msg;
+});
+// Creating a custom log format that excludes certain fields
+const logFormat = winston.format.combine(
+    winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }), // Shorter timestamp format
+    winston.format((info: any) => {
+        delete info.pid;
+        delete info.hostname;
+        // Adjust the deletion of 'level' based on the transport requirements
+        return info;
+    })(),
+    customWinstonFormat
+);
+
+// Ensure the logs directory exists
+const logsDir = './logs';
+if (!fs.existsSync(logsDir)) {
+    fs.mkdirSync(logsDir);
+}
+
+// Create the Winston logger with TypeScript types
+export const logger: winston.Logger = winston.createLogger({
+    level: 'trace',
+    format: logFormat,
+    transports: [
+        new winston.transports.Console({
+            format: winston.format.combine(
+                winston.format.colorize(),
+                logFormat
+            ),
+        }),
+        new winston.transports.File({ filename: path.join(logsDir, 'app.log') }),
+
+    ],
+});
+
+logger.info('This is an info level message', { additional: 'data' });
+

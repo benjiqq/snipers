@@ -1,7 +1,7 @@
 import 'dotenv/config';
 import Monitor from '../app/oldmonitor.js';
 import PoolInfoGatherer from '../app/parser_pool.js';
-import Log from "../lib/logger.js";
+import { logger } from "../lib/logger.js";
 import { RaydiumAmmCoder } from '../raydium_idl/coder/index.js';
 import { Connection, PublicKey } from '@solana/web3.js';
 const IDL = require('../raydium_idl/idl.json');
@@ -23,7 +23,7 @@ async function main(connection: any, programAddress: any) {
 
     var logTimeout = setTimeout(() => {
         if (logcounter === 0) {
-            Log.info('No logs received within the expected timeframe.');
+            logger.info('No logs received within the expected timeframe.');
             return;
             // Take appropriate action here, such as retrying or handling the error
         }
@@ -40,13 +40,13 @@ async function main(connection: any, programAddress: any) {
         ({ logs, err, signature }: { logs: string[] | null; err: Error | null; signature: string }) => {
             if (logcounter == 0) {
                 setInterval(() => {
-                    Log.info('Log count: ' + logcounter);
-                    Log.info('initialize2Counter count: ' + initialize2Counter);
+                    logger.info('Log count: ' + logcounter);
+                    logger.info('initialize2Counter count: ' + initialize2Counter);
                     let diff = logcounter - last_logcounter;
-                    Log.info('diff ' + diff);
+                    logger.info('diff ' + diff);
                     last_logcounter = logcounter;
 
-                    //Log.info('Signature count with errors: ' + this.logcounter_error);
+                    //logger.info('Signature count with errors: ' + this.logcounter_error);
 
                 }, reportTime);
             }

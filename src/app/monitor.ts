@@ -21,6 +21,19 @@ logger.info(`connect ${process.env.RPC_HOST} ${process.env.WSS_HOST}`)
 
 import { PoolModel, PoolCreationTx } from '../examples/types.js'
 
+const io = require('@pm2/io')
+
+//testing
+const realtimeUser = io.metric({
+    name: 'Realtime user',
+})
+
+realtimeUser.set(42)
+
+const pm2pools = io.meter({
+    name: 'pools',
+    id: 'pools'
+})
 
 /**
  * monitor pools
@@ -31,8 +44,6 @@ class PoolMonitor {
     private connection: Connection | null = null;
     private isInitiated: boolean = false;
     private coder: RaydiumAmmCoder | null = null;
-
-
 
 
     /**
@@ -122,7 +133,7 @@ class PoolMonitor {
 
         logger.info('track pools');
 
-        const reportTime = 10000;
+        const reportTime = 30000;
         const currentDate = new Date();
         const runTimestamp = currentDate.getTime() / 1000;
         let count_open = 0;
@@ -143,6 +154,7 @@ class PoolMonitor {
             //let lastlog: string = rlog.logs[rlog.logs.length - 1];
             logger.info('sig found ' + rlog.signature);
             count_open++;
+            pm2pools.mark();
 
             //getTokenInfo
             logger.info('get info');

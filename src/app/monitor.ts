@@ -238,7 +238,7 @@ class PoolMonitor {
     private async getPoolInfo(address: string): Promise<PoolModel | null> {
         logger.info('getPoolInfo ' + address);
         try {
-            const acc = await connection!.getAccountInfo(new PublicKey(address));
+            const acc = await this.connection!.getAccountInfo(new PublicKey(address));
             if (acc) {
                 //logger.error('acc ' + acc);
                 //logger.error('acc data: ' + acc.data);

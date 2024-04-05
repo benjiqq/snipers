@@ -13,3 +13,5 @@ WSS_HOST=ws://api.mainnet-beta.solana.com```
 
 ankr.com
 quicknode.com
+
+pm2 start "bun run src/index.ts" --name poolmonitor

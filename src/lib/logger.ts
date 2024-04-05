@@ -44,7 +44,45 @@ const customWinstonFormat = winston.format.printf(({ level, message, timestamp, 
     }
     return msg;
 });
-// Creating a custom log format that excludes certain fields
+
+const customFormat2 = winston.format.printf(({ level, message, timestamp, stack, ...metadata }) => {
+    //console.log('??? ' + message);
+    let msg = `${timestamp} [${level}]: ${message}`;
+    //console.log('???>>>> ' + message);
+    //console.log('>>' + msg);
+    // if (Object.keys(metadata).length !== 0) {
+    //     //console.log('??? ' + message);
+    //     msg += ` ${JSON.stringify(metadata)}`;
+    // } else {
+    //     console.log('??? ' + message);
+    // }
+    //msg += ` ${JSON.stringify(metadata)}`;
+    return msg;
+});
+
+const customFormat = winston.format.printf(({ level, message, timestamp, ...metadata }) => {
+    // Format your log message
+    let formattedMessage = `${timestamp} [${level}]: ${message}`;
+    if (Object.keys(metadata).length > 0) {
+        formattedMessage += ` ${JSON.stringify(metadata)}`;
+    }
+    return formattedMessage;
+});
+
+const logFormatStack = winston.format.combine(
+    winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
+    winston.format.printf(({ level, message, timestamp, ...metadata }) => {
+        // Construct the log message string
+        let msg = `${timestamp} [${level}]: ${message}`;
+        // Optionally, convert metadata to a string if it's not empty
+        if (Object.keys(metadata).length !== 0) {
+            msg += ` ${JSON.stringify(metadata)}`;
+        }
+        return msg;
+    })
+);
+
+
 const logFormat = winston.format.combine(
     winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }), // Shorter timestamp format
     winston.format((info: any) => {
@@ -53,7 +91,7 @@ const logFormat = winston.format.combine(
         // Adjust the deletion of 'level' based on the transport requirements
         return info;
     })(),
-    customWinstonFormat
+    customFormat
 );
 
 // Ensure the logs directory exists
@@ -63,7 +101,7 @@ if (!fs.existsSync(logsDir)) {
 }
 
 // Create the Winston logger with TypeScript types
-export const logger: winston.Logger = winston.createLogger({
+export const logger2: winston.Logger = winston.createLogger({
     level: 'trace',
     format: logFormat,
     transports: [
@@ -73,8 +111,26 @@ export const logger: winston.Logger = winston.createLogger({
                 logFormat
             ),
         }),
-        new winston.transports.File({ filename: path.join(logsDir, 'app.log') }),
+        new winston.transports.File({
+            filename: path.join(logsDir, 'app.log')
+        }),
 
+    ],
+});
+
+export const logger = winston.createLogger({
+    level: 'info',
+    format: logFormat,
+    transports: [
+        new winston.transports.Console({
+            format: winston.format.combine(
+                winston.format.colorize(),
+                logFormat
+            ),
+        }),
+        new winston.transports.File({
+            filename: path.join(logsDir, 'app.log')
+        }),
     ],
 });
 

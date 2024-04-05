@@ -19,7 +19,7 @@ export const RAY_FEE = new PublicKey(
     '7YttLkHDoNj9wyDur5pM1ejNaAvT9X4eqaYcHQqtj2G5'
 );
 
-console.log(`connect ${process.env.RPC_HOST} ${process.env.WSS_HOST}`)
+logger.info(`connect ${process.env.RPC_HOST} ${process.env.WSS_HOST}`)
 
 import { PoolModel, PoolCreationTx } from '../examples/types.js'
 
@@ -95,7 +95,7 @@ async function getPoolTransaction(signature: string): Promise<PoolCreationTx | n
     }
 }
 
-async function subscribeToLogs() {
+async function subscribeToLPools() {
     logger.info('track pools');
 
     try {
@@ -175,11 +175,13 @@ async function subscribeToLogs() {
 }
 
 (async () => {
+    logger.info('start');
     try {
-        await subscribeToLogs();
+        await subscribeToLPools();
         //await testinfo();
         // Additional code that relies on subscribeToLogsPool() can go here.
     } catch (error) {
-        console.error('An error occurred:', error);
+        logger.error('An error occurred:', error);
     }
 })();
+logger.info('end');

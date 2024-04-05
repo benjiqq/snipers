@@ -1,10 +1,11 @@
 import 'dotenv/config';
-import PoolMonitor from './app/oldmonitor.js';
+import PoolMonitor from './app/monitor.js';
 import express, { Request, Application } from 'express';
 import http from 'http';
 import { logger } from "./lib/logger";
 
 logger.info('start');
+console.log('start..');
 
 // const app = express();
 // app.use(express.json());

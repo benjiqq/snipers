@@ -44,7 +44,7 @@ async function startServer() {
 
         clients.push(ws);
 
-        ws.on('recent_pools', (message: any) => {
+        ws.on('message', (message: any) => {
             console.log(`Received message => ${message}`);
 
         });

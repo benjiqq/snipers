@@ -11,7 +11,7 @@ class RabbitMQSubscriber {
     }
 
     async init(): Promise<void> {
-        console.log('init rmq');
+        console.log('subscriber. init rmq ' + this.uri);
         if (this.connection && this.channel) {
             return;
         }

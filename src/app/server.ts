@@ -16,16 +16,21 @@ const wss = new WebSocket.Server({ server });
 //     res.sendFile(indexPath);
 // });
 
-async function startServer() {
+const clients: WebSocket[] = [];
 
-    //await rabbitMQSubscriber.bindQueueToExchange('myQueue', 'myFanoutExchange');
+
+async function startServer() {
 
     try {
         await rabbitMQSubscriber.consume('pool', (msg) => {
             if (msg) {
                 console.log("Received message:", msg.content.toString());
-                // Acknowledge the message
                 // rabbitMQSubscriber.channel?.ack(msg);
+                clients.forEach((client: WebSocket) => {
+                    if (client.readyState === WebSocket.OPEN) {
+                        client.send(msg.content.toString());
+                    }
+                });
             }
         });
         console.log('Subscribed to pool');
@@ -36,6 +41,8 @@ async function startServer() {
     // WebSocket connection handler
     wss.on('connection', (ws: any) => {
         console.log('Client connected');
+
+        clients.push(ws);
 
         ws.on('message', (message: any) => {
             console.log(`Received message => ${message}`);

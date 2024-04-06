@@ -44,10 +44,9 @@ async function startServer() {
 
         clients.push(ws);
 
-        ws.on('message', (message: any) => {
+        ws.on('recent_pools', (message: any) => {
             console.log(`Received message => ${message}`);
-            // Echo the message back to the client
-            ws.send(`Echo: ${message}`);
+
         });
 
         ws.on('close', () => {
@@ -55,7 +54,7 @@ async function startServer() {
         });
 
         // Send a message to the client
-        ws.send('Openbot. server started');
+        ws.send(JSON.stringify({ 'message': 'Openbot. server started' }));
     });
 
     const PORT = process.env.PORT || 3000;

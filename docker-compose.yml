@@ -54,6 +54,8 @@ services:
     depends_on:
       - pooltracker
       - rabbitmq
+    ports:
+      - "3000:3000"
     networks:
       - solananetwork
 

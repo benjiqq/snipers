@@ -8,18 +8,6 @@ import { decodeRayLogSwap } from './decode_ray.js'
 import { MAINNET_PROGRAM_ID } from '@raydium-io/raydium-sdk';
 export const RAYDIUM_LIQUIDITY_PROGRAM_ID_V4 = MAINNET_PROGRAM_ID.AmmV4;
 
-//testing
-// const realtimeUser = io.metric({
-//     name: 'Realtime user',
-// })
-
-// realtimeUser.set(42)
-
-// const eventssec = io.meter({
-//     name: 'req/sec',
-//     id: 'app/requests/volume'
-// })
-
 
 function measureBytes(data: any) {
     const encoder = new TextEncoder();
@@ -160,7 +148,6 @@ async function subscribeToLogs() {
             }
 
             if (!found_ray) {
-                // logger.info('????');
                 // for (let logEntry of rlog.logs) {
                 //     logger.info(logEntry)
                 // }

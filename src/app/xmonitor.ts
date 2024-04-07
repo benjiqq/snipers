@@ -21,19 +21,19 @@ logger.info(`connect ${process.env.RPC_HOST} ${process.env.WSS_HOST}`)
 
 import { PoolModel, PoolCreationTx } from '../examples/types.js'
 
-const io = require('@pm2/io')
+// const io = require('@pm2/io')
 
-//testing
-const realtimeUser = io.metric({
-    name: 'Realtime user',
-})
+// //testing
+// const realtimeUser = io.metric({
+//     name: 'Realtime user',
+// })
 
-realtimeUser.set(42)
+// realtimeUser.set(42)
 
-const pm2pools = io.meter({
-    name: 'pools',
-    id: 'pools'
-})
+// const pm2pools = io.meter({
+//     name: 'pools',
+//     id: 'pools'
+// })
 
 /**
  * monitor pools
@@ -154,7 +154,7 @@ class PoolMonitor {
             //let lastlog: string = rlog.logs[rlog.logs.length - 1];
             logger.info('sig found ' + rlog.signature);
             count_open++;
-            pm2pools.mark();
+            //pm2pools.mark();
 
             //getTokenInfo
             logger.info('get info');

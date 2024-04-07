@@ -106,85 +106,10 @@ async function subscribeToLogs() {
     //const subscriptionId = connection.onLogs(new PublicKey(poolid), async (rlog) => {
     let totalDownloadedBytes = 0;
     let bytes = 0;
-    const subscriptionId = connection.onLogs(new PublicKey(RAYDIUM_LIQUIDITY_PROGRAM_ID_V4), async (rlog) => {
+    const subscriptionId = connection.onProgramAccountChange(new PublicKey(RAYDIUM_LIQUIDITY_PROGRAM_ID_V4), async (rlog) => {
         events++;
         //eventssec.mark();
-        bytes += measureBytes(rlog.logs);
-        totalDownloadedBytes += bytes;
 
-        let lastlog: string = rlog.logs[rlog.logs.length - 1];
-
-        if (lastlog.includes("failed")) {
-            events_failed++;
-        }
-        else {
-            events_success++;
-            let found_ray = false;
-            //logger.info("last log " + lastlog)
-            let infolog;
-            let raylog;
-            for (let logEntry of rlog.logs) {
-                //logger.info('> ' + logEntry)
-                if (logEntry.includes('ray_log')) {
-                    found_ray = true;
-                    raylog = logEntry.split('ray_log: ')[1]
-                    //logger.info(raylog);
-                    //TODO can improve no need to decode all
-                    infolog = decodeRayLogSwap(raylog);
-                    //logger.info(infolog);
-                    //logger.info('type ' + infolog.log_type);
-                    if (infolog.log_type == TYPE_INIT) {
-                        count_init++;
-                    }
-                    if (infolog.log_type == TYPE_DEPOSIT) {
-                        count_deposit++;
-                    }
-                    if (infolog.log_type == TYPE_WITHDRAW) {
-                        count_withdraw++;
-                    }
-                    if (infolog.log_type == TYPE_SWAPIN) {
-                        count_swapin++;
-                        logger.info('>> ' + rlog.signature);
-                        logger.info('raylog ' + raylog);
-                        //logger.info('type ' + infolog.log_type);
-                        logger.info('amount_in ' + infolog.amount_in);
-                        logger.info('out_amount ' + infolog.out_amount);
-                        logger.info('sdirection ' + infolog.sdirection);
-                        logger.info('------------------------------');
-                    }
-                    if (infolog.log_type == TYPE_SWAPOUT) {
-                        count_swapout++;
-                    }
-
-                }
-            }
-
-            if (!found_ray) {
-                // logger.info('????');
-                // for (let logEntry of rlog.logs) {
-                //     logger.info(logEntry)
-                // }
-            } else {
-                count_tx++;
-                //logger.info(rlog.signature);
-
-                //logger.info('direction ' + infolog.direction);
-
-                // if ((infolog.log_type != 4) && (infolog.log_type != 3)) {
-                //     logger.info('...');
-                //     logger.info(rlog.signature);
-                //     logger.info(infolog.log_type);
-                //     logger.info(infolog);
-                //     logger.info(infolog.direction);
-                //     logger.info('' + swapInCount);
-                //     logger.info('' + swapOutCount);
-
-                // }
-            }
-            //logger.info('-------------------------------- ');
-            // logger.info("log " + rlog.logs)
-            // logger.info("log " + rlog.signature)
-        }
 
     });
 

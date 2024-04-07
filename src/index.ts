@@ -1,5 +1,5 @@
 import 'dotenv/config';
-import PoolMonitor from './app/monitor.js';
+import PoolMonitor from './app/xmonitor.js';
 import express, { Request, Application } from 'express';
 import http from 'http';
 import { logger } from "./lib/logger";
@@ -28,5 +28,5 @@ console.log('start..');
 //     process.exit(1);
 // });;
 
-PoolMonitor.init();
-PoolMonitor.start();
+//PoolMonitor.init();
+//PoolMonitor.start();

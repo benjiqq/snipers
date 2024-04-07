@@ -1,0 +1,10 @@
+stages:
+  - deploy
+
+deploy_to_server:
+  stage: deploy
+  script:
+    - echo "Deploying to server..."
+    - ssh nexansolstaging@139.99.70.205 'cd /home/nexansolstaging/dexsol && git pull'
+  only:
+    - main

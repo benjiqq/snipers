@@ -1,14 +1,12 @@
-import Long from "long";
 
 
-export function decodeRayLog(encodedLog: string): any {
+export function decodeRayLogSwap(encodedLog: string): any {
     //console.log(">> " + encodedLog);
     try {
         //console.log(encodedLog);
 
         // Base64 decode the string to get back the original byte array
         const buffer = Buffer.from(encodedLog, 'base64');
-        //console.log(buffer);
         const log_type = buffer[0];
         //console.log("?? " + log_type);
         let offset = 0;
@@ -48,15 +46,27 @@ export function decodeRayLog(encodedLog: string): any {
         //const dataView = new DataView(buffer.buffer, buffer.byteOffset, buffer.byteLength);
         //const log_type = dataView.getUint8(offset); offset += 1;
 
+        let sdirection = '';
+        if (direction.toString() == '1') {
+            sdirection = 'buy';
+        }
+        else {
+            sdirection = 'sell';
+        }
+
+        //TODO decimals
+
         return {
             log_type,
             amount_in: amount_in.toString(),
+            amount_ind: amount_in.toString(),
             minimum_out: minimum_out.toString(),
             direction: direction.toString(),
             user_source: user_source.toString(),
             pool_coin: pool_coin.toString(),
             pool_pc: pool_pc.toString(),
             out_amount: out_amount.toString(),
+            sdirection: sdirection
         };
 
 
@@ -71,8 +81,16 @@ export function decodeRayLog(encodedLog: string): any {
 //buy
 //2wSWUVh142CE9GWNbP4ppnNJDAw5nv5adcEcsdniJDtbQ7sJ4CzgA6T25roAoHVmgB9Tbg8iYd21BmTM25MSq6FQ
 //Swap 1.2 SOL for 40,771.36114 MEW
-let s = 'BP//////////AOQLVAIAAAABAAAAAAAAANIQja4AAAAAykVxTXAcAQDq7gAfFlMAAJkQja4AAAAA';
-console.log(decodeRayLog(s));
+//let s = 'BP//////////AOQLVAIAAAABAAAAAAAAANIQja4AAAAAykVxTXAcAQDq7gAfFlMAAJkQja4AAAAA';
+//let s = 'A/CKy+tIAgAAAAAAAAAAAAACAAAAAAAAAJQYl9eRBAAAX+86//97QQDuJhiqBAAAAM6NKQAAAAAA';
+//let s = 'A/yFQA0AAAAAAAAAAAAAAAABAAAAAAAAAPyFQA0AAAAA0cxAds9AAAAXo9ImGwAAALc3TX4fAAAA';
+
+//let s = 'AzQIAAAAAAAAIzSiAzlyEgABAAAAAAAAADQIAAAAAAAADGvwP26MJgBpAAAAAAAAALcQZCM5tSQA';
+// //3RdeRSmgaSyko8vETPSeCc7DgqnCQaKd5S4fqEc24Xi1miAWA7HCT54D3Ay2jZLQQvTNjcJhfy1nhX2EUEWFSBun
+//let info = decodeRayLogSwap(s)
+// console.log(info.amount_in / 10 ** 9);
+// console.log(info.out_amount / 10 ** 9);
+// console.log(info.sdirection);
 
 //sell
 //28fnV4wg4L7rZ45F1xxh2hbnUAqHEw1SFLb8PpGeuRxyXAxqgB8uTgj3RPGQ7zEjqNjMcQEuvpP7sTnphTPNqsE4
